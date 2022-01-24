@@ -12,13 +12,13 @@ import 'package:md3_clock/pages/home/navigation_delegate.dart';
 import 'package:md3_clock/widgets/switcher.dart';
 import 'package:value_notifier/value_notifier.dart';
 
+import '../../components/keypad/widget.dart';
 import '../../model/duration_components.dart';
 import '../../utils/chrono.dart';
 import '../../widgets/blinking.dart';
 import '../../widgets/clock_ring.dart';
 import '../../widgets/duration.dart';
 import '../../widgets/fab_safe_area.dart';
-import '../home/keypad.dart';
 import 'controller.dart';
 
 class _TimersView extends StatefulWidget {
@@ -250,8 +250,9 @@ class TimerPage extends StatelessWidget {
   final TimerPageController controller;
 
   Widget _buildAddPage(BuildContext context) => FabSafeArea(
-      child: TimeKeypad(
-          controller: controller.addSectionController.keypadController));
+        child: TimeKeypad(
+            controller: controller.addSectionController.keypadController),
+      );
   Widget _buildTimersView(BuildContext context) =>
       _TimersView(controller: controller);
 

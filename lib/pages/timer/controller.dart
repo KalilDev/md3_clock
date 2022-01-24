@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:value_notifier/value_notifier.dart';
 
 import '../../components/fab_group/controller.dart';
+import '../../components/keypad/controller.dart';
 import '../../utils/chrono.dart';
-import '../home/keypad.dart';
 
 enum TimerSectionState {
   idle,
