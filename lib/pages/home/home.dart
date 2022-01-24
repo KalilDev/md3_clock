@@ -5,11 +5,14 @@ import 'package:md3_clock/pages/home/navigation_delegate.dart';
 import 'package:md3_clock/widgets/switcher.dart';
 import 'package:value_notifier/value_notifier.dart';
 
-import 'alarm.dart';
+import '../alarm/controller.dart';
+import '../alarm/widget.dart';
+import '../stopwatch/controller.dart';
+import '../stopwatch/widget.dart';
+import '../timer/controller.dart';
+import '../timer/widget.dart';
 import 'clock.dart';
 import 'sleep.dart';
-import 'timer.dart';
-import 'stopwatch.dart';
 
 class _ClockPageSpec {
   const _ClockPageSpec({
