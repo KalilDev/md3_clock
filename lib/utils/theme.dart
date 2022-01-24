@@ -9,20 +9,30 @@ import 'package:monet_theme/monet_theme.dart';
 int _androidToTone(int android) => 100 - (android ~/ 10);
 int _toneToAndroid(int tone) => 1000 - (tone * 10);
 TonalPalette _commonTonalPaletteFromAndroidPalette(Map<int, int> map) {
-  final tones = TonalPalette.commonTones.map((e) {
+  final averageColorValues = map.values
+      .map(Color.new)
+      .map((e) => [e.red, e.green, e.blue])
+      .fold<List<int>>(
+          [0, 0, 0],
+          (state, e) => state
+            ..[0] += e[0]
+            ..[1] += e[1]
+            ..[2] += e[2])
+      .map((e) => e ~/ map.length)
+      .toList();
+  final averageColor = Color.fromARGB(
+    255,
+    averageColorValues[0],
+    averageColorValues[1],
+    averageColorValues[2],
+  );
+  final averageColorHCT = HctColor.fromInt(averageColor.value);
+  final defaults = TonalPalette.of(averageColorHCT.hue, averageColorHCT.chroma);
+  return TonalPalette.fromList(TonalPalette.commonTones.map((e) {
     final mappedIndex = _toneToAndroid(e);
-    return map[mappedIndex] ?? missing.value;
-  }).toList();
-  final tonalPalette = TonalPalette.fromList(tones);
-  for (final androidTone in map.keys) {
-    final result = tonalPalette.get(_androidToTone(androidTone));
-    final expected = map[androidTone]!;
-    assert(result == expected);
-  }
-  return tonalPalette;
+    return map[mappedIndex] ?? defaults.get(e);
+  }).toList());
 }
-
-const missing = Colors.orange;
 
 abstract class ClockTheme {
   static final raw_error = _commonTonalPaletteFromAndroidPalette(
