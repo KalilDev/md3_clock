@@ -1,43 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
-import 'package:md3_clock/pages/home/navigation_delegate.dart';
 import 'package:value_notifier/value_notifier.dart';
 
-class ClockPageController extends IDisposableBase {}
+import '../../model/city.dart';
+import '../../widgets/search.dart';
+import 'controller.dart';
 
-class ClockPage extends StatelessWidget {
-  const ClockPage({
-    Key? key,
-    required this.controller,
-  }) : super(key: key);
-  final ClockPageController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Placeholder();
-  }
-}
-
-class City {
-  final String name;
-  final String? stateName;
-  final String countryName;
-
-  final Duration timeZoneOffset;
-
-  City(
-    this.name,
-    this.stateName,
-    this.countryName,
-    this.timeZoneOffset,
-  );
-  DateTime get now => DateTime.now().add(timeZoneOffset);
-  String get titleString =>
-      '$name,${stateName != null ? ' $stateName,' : ''} $countryName';
-}
-
-class CitySearchDelegate extends SearchDelegate<City> {
-  CitySearchDelegate() : super(searchFieldLabel: 'Pesquisar uma cidade');
+class CitySearchDelegate extends MD3SearchDelegate<City> {
+  String get searchFieldLabel => 'Pesquisar uma cidade';
   @override
   List<Widget>? buildActions(BuildContext context) => [
         if (query.isNotEmpty)
@@ -64,12 +34,6 @@ class CitySearchDelegate extends SearchDelegate<City> {
         trailing: Text(TimeOfDay.fromDateTime(city.now).toString()),
         onTap: () => Navigator.of(context).pop(city),
       );
-  @override
-  ThemeData appBarTheme(BuildContext context) => context.theme.copyWith(
-        appBarTheme: const AppBarTheme(
-          elevation: 0,
-        ),
-      );
 
   @override
   Widget buildResults(BuildContext context) => queryResults.buildView(
@@ -80,16 +44,16 @@ class CitySearchDelegate extends SearchDelegate<City> {
                   children: [
                     Icon(
                       Icons.search,
-                      size: 80,
+                      size: 124,
                       color:
                           context.colorScheme.onSurfaceVariant.withOpacity(0.6),
                     ),
-                    SizedBox(height: 8.0),
                     Text(
                       'Pesquisar uma cidade',
-                      style: context.textTheme.bodyMedium.copyWith(
+                      style: context.textTheme.bodyLarge.copyWith(
                         color: context.colorScheme.onSurfaceVariant
                             .withOpacity(0.6),
+                        fontWeight: FontWeight.w400,
                       ),
                     )
                   ],
@@ -103,30 +67,60 @@ class CitySearchDelegate extends SearchDelegate<City> {
 
   @override
   Widget buildSuggestions(BuildContext context) => buildResults(context);
-}
-
-class ClockPageFab extends StatelessWidget {
-  const ClockPageFab({
-    Key? key,
-    required this.controller,
-  }) : super(key: key);
-  final ClockPageController controller;
 
   @override
-  Widget build(BuildContext context) {
-    const child = Icon(Icons.add);
-    void onPressed() {
-      showSearch<City>(
-        context: context,
-        delegate: CitySearchDelegate(),
-      ).then((city) {
-        print('todo');
-      });
-    }
+  PreferredSizeWidget buildAppbar(BuildContext context, Widget textField) =>
+      MD3SmallAppBar(
+        leading: buildLeading(context),
+        actions: buildActions(context),
+        title: textField,
+        bottom: _BottomDecoration(),
+      );
+}
 
-    if (useLargeFab(context)) {
-      return MD3FloatingActionButton.large(onPressed: onPressed, child: child);
-    }
-    return MD3FloatingActionButton(onPressed: onPressed, child: child);
+class _BottomDecoration extends StatelessWidget implements PreferredSizeWidget {
+  const _BottomDecoration({
+    Key? key,
+    // one device pixel
+    this.size = 0.0,
+  }) : super(key: key);
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+        painter: _BottomDecorationPainter(
+          color: context.colorScheme.outline,
+          size: size,
+        ),
+        size: preferredSize,
+      );
+
+  @override
+  Size get preferredSize => Size.fromHeight(size);
+}
+
+class _BottomDecorationPainter extends CustomPainter {
+  final Color color;
+  final double size;
+
+  _BottomDecorationPainter({
+    required this.color,
+    required this.size,
+  });
+  @override
+  void paint(Canvas canvas, Size size) {
+    print(size);
+    paintBorder(
+      canvas,
+      Offset.zero & size,
+      bottom: BorderSide(
+        color: color,
+        width: this.size,
+      ),
+    );
   }
+
+  @override
+  bool shouldRepaint(_BottomDecorationPainter oldDelegate) =>
+      color != oldDelegate.color || size != oldDelegate.size;
 }

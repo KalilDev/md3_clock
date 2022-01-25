@@ -11,7 +11,8 @@ import '../stopwatch/controller.dart';
 import '../stopwatch/widget.dart';
 import '../timer/controller.dart';
 import '../timer/widget.dart';
-import 'clock.dart';
+import '../world_clock/controller.dart';
+import '../world_clock/widget.dart';
 import 'sleep.dart';
 
 class _ClockPageSpec {
