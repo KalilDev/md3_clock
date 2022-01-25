@@ -9,6 +9,7 @@ import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/components/fab_group/controller.dart';
 import 'package:md3_clock/components/fab_group/widget.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
+import 'package:md3_clock/utils/layout.dart';
 import 'package:md3_clock/widgets/switcher.dart';
 import 'package:value_notifier/value_notifier.dart';
 
@@ -81,10 +82,14 @@ class _TimerSectionTitle extends StatelessWidget {
   const _TimerSectionTitle({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) => Text(
-        'Marcador',
-        style: context.textTheme.titleLarge
-            .copyWith(color: context.colorScheme.onSurfaceVariant),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(left: 8.0),
+        child: Text(
+          'Marcador',
+          style: context.textTheme.titleLarge.copyWith(
+            color: context.colorScheme.onSurfaceVariant,
+          ),
+        ),
       );
 }
 
@@ -99,14 +104,17 @@ class _TimerSectionPage extends StatelessWidget {
   static const _kBottomPadding = 16.0;
   static const _kHorizontalPadding = 24.0;
 
-  Widget _buildLandscape(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _TimerSectionTitle(),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
+  Widget _buildLandscape(BuildContext context) {
+    final tinyLayout = isTiny(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _TimerSectionTitle(),
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (tinyLayout)
                 _TimerResetOrAddMinuteButton(
                   controller: controller,
                   style: ButtonStyle(
@@ -116,18 +124,23 @@ class _TimerSectionPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                Expanded(
-                  child: Center(
-                    child: _TimerDurationText(
-                      controller: controller,
-                    ),
-                  ),
+              Expanded(
+                child: Center(
+                  child: tinyLayout
+                      ? _TimerDurationText(
+                          controller: controller,
+                        )
+                      : _TimerClockRingBody(
+                          controller: controller,
+                        ),
                 ),
-              ],
-            ),
-          )
-        ],
-      );
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
 
   Widget _buildPortrait(BuildContext context) => FabSafeArea(
         child: Padding(
