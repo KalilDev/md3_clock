@@ -147,31 +147,39 @@ class _AlarmPageState extends State<AlarmPage> {
     super.dispose();
   }
 
-  Widget _cardTheme(BuildContext context, {required Widget child}) =>
-      FilledCardTheme(
-        data: FilledCardThemeData(
-          style: CardStyle(
-              clipBehavior: Clip.antiAlias,
-              padding: MaterialStateProperty.all(
-                EdgeInsets.symmetric(
-                  horizontal: 16,
+  Widget _cardTheme(
+    BuildContext context, {
+    required Widget child,
+  }) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final isTiny = MediaQuery.of(context).size.shortestSide < 360;
+    final useLargerPadding = isLandscape;
+    return FilledCardTheme(
+      data: FilledCardThemeData(
+        style: CardStyle(
+            clipBehavior: Clip.antiAlias,
+            padding: MaterialStateProperty.all(
+              EdgeInsets.symmetric(
+                horizontal: useLargerPadding ? 44 : 16,
+              ),
+            ),
+            backgroundColor: MD3ElevationTintableColor(
+              context.colorScheme.surface,
+              MD3ElevationLevel.surfaceTint(context.colorScheme),
+              MaterialStateProperty.all(context.elevation.level2),
+            ),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  26,
                 ),
               ),
-              backgroundColor: MD3ElevationTintableColor(
-                context.colorScheme.surface,
-                MD3ElevationLevel.surfaceTint(context.colorScheme),
-                MaterialStateProperty.all(context.elevation.level1),
-              ),
-              shape: MaterialStateProperty.all(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    24,
-                  ),
-                ),
-              )),
-        ),
-        child: child,
-      );
+            )),
+      ),
+      child: child,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

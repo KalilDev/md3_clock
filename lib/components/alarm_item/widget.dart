@@ -103,13 +103,13 @@ class _AlarmItemTimeText extends StatelessWidget {
         );
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2.0),
+        padding: const EdgeInsets.only(top: 4.0, bottom: 2.0),
         child: _ActivatableDefaultTextStyle(
-          activeTextStyle: context.textTheme.headlineLarge.copyWith(
+          activeTextStyle: context.textTheme.displayMedium.copyWith(
             color: context.colorScheme.onSurface,
             fontWeight: FontWeight.w600,
           ),
-          inactiveTextStyle: context.textTheme.headlineLarge.copyWith(
+          inactiveTextStyle: context.textTheme.displayMedium.copyWith(
             color: context.colorScheme.outline,
             fontWeight: FontWeight.normal,
           ),
@@ -124,7 +124,7 @@ class _AlarmItemTimeText extends StatelessWidget {
 }
 
 const _kExtraLeftPadding = 4.0;
-const _kListTileIconSize = 20.0;
+const _kListTileIconSize = 24.0;
 
 class _ListTile extends StatelessWidget {
   const _ListTile({
@@ -135,7 +135,7 @@ class _ListTile extends StatelessWidget {
     this.isActive,
     this.contentPadding,
     this.onTap,
-    this.dense = false,
+    this.dense = true,
   }) : super(key: key);
   final Widget? leading;
   final Widget title;
@@ -165,7 +165,7 @@ class _ListTile extends StatelessWidget {
               child: leading!,
             ),
       minLeadingWidth: 36,
-      horizontalTitleGap: 0,
+      horizontalTitleGap: 4,
       title: DefaultTextStyle.merge(
         style: titleStyle,
         child: title,
@@ -226,6 +226,7 @@ class _AlarmItemHiddenSection extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 8.0),
             controller.active
                 .bind(
                   (active) => controller.weekdays
@@ -497,6 +498,36 @@ void focusScrollviewOnContext(BuildContext context) {
     alignment: 0,
     duration: const Duration(milliseconds: 300),
   );
+}
+
+const _kAnimationDuration = const Duration(milliseconds: 300);
+
+class _ExpandableHeight extends StatelessWidget {
+  const _ExpandableHeight({
+    Key? key,
+    required this.isExpanded,
+    required this.hidden,
+    required this.expanded,
+    this.child,
+  }) : super(key: key);
+  final ValueListenable<bool> isExpanded;
+  final double hidden;
+  final double expanded;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) => isExpanded.buildView(
+        builder: (context, isExpanded, child) => TweenAnimationBuilder<double>(
+          tween: Tween(end: isExpanded ? expanded : hidden),
+          duration: _kAnimationDuration,
+          builder: (context, height, child) => SizedBox(
+            height: height,
+            child: child,
+          ),
+          child: child,
+        ),
+        child: child,
+      );
 }
 
 class AlarmItemCard extends StatelessWidget {
