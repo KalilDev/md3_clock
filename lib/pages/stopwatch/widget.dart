@@ -18,6 +18,7 @@ import 'package:value_notifier/value_notifier.dart';
 
 import '../../model/lap.dart';
 import '../../utils/chrono.dart';
+import '../../utils/layout.dart';
 import '../stopwatch/controller.dart';
 
 class _LapTextStyle extends StatelessWidget {
@@ -568,27 +569,56 @@ class StopwatchPage extends StatelessWidget {
         ),
       );
 
-  Widget _buildLandscape(BuildContext context) => Center(
+  Widget _landscapeLapsList(BuildContext context) => _LapsList(
+        controller: controller,
+        shrinkWrap: true,
+      );
+
+  Widget _buildLandscapeTiny(BuildContext context) => Center(
         child: controller.hasLaps.build(
           builder: (context, hasLaps, _) => AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: hasLaps
-                ? Center(
-                    child: _LapsList(
-                      controller: controller,
-                      shrinkWrap: true,
-                    ),
-                  )
+                ? Center(child: _landscapeLapsList(context))
                 : _StopwatchDurationText(controller: controller),
           ),
         ),
+      );
+  Widget _buildLandscape(BuildContext context) => Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Center(
+              child: _StopwatchDurationText(controller: controller),
+            ),
+          ),
+          Flexible(
+            child: controller.hasLaps.build(
+              builder: (context, hasLaps, child) =>
+                  TweenAnimationBuilder<double>(
+                tween: Tween(end: hasLaps ? 1.0 : 0.0),
+                duration: const Duration(milliseconds: 300),
+                builder: (context, factor, child) => _SizeTransitioned(
+                  sizeFactor: factor,
+                  axis: Axis.horizontal,
+                  axisAlignment: -1,
+                  child: child,
+                ),
+                child: child,
+              ),
+              child: _landscapeLapsList(context),
+            ),
+          )
+        ],
       );
 
   @override
   Widget build(BuildContext context) =>
       MediaQuery.of(context).orientation == Orientation.portrait
           ? _buildPortrait(context)
-          : _buildLandscape(context);
+          : isTiny(context)
+              ? _buildLandscapeTiny(context)
+              : _buildLandscape(context);
 }
 
 class StopwatchPageFab extends StatelessWidget {
