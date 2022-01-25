@@ -77,6 +77,17 @@ class __TimersViewState extends State<_TimersView> {
           ));
 }
 
+class _TimerSectionTitle extends StatelessWidget {
+  const _TimerSectionTitle({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) => Text(
+        'Marcador',
+        style: context.textTheme.titleLarge
+            .copyWith(color: context.colorScheme.onSurfaceVariant),
+      );
+}
+
 class _TimerSectionPage extends StatelessWidget {
   const _TimerSectionPage({
     Key? key,
@@ -85,34 +96,57 @@ class _TimerSectionPage extends StatelessWidget {
 
   final TimerSectionController controller;
 
-  Widget _title(BuildContext context) => Text(
-        'Marcador',
-        style: context.textTheme.titleLarge
-            .copyWith(color: context.colorScheme.onSurfaceVariant),
-      );
   static const _kBottomPadding = 16.0;
   static const _kHorizontalPadding = 24.0;
-  @override
-  Widget build(BuildContext context) => FabSafeArea(
+
+  Widget _buildLandscape(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _TimerSectionTitle(),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _TimerResetOrAddMinuteButton(
+                  controller: controller,
+                  style: ButtonStyle(
+                    textStyle: MaterialStateProperty.all(
+                      context.textTheme.labelLarge
+                          .copyWith(fontWeight: FontWeight.w400),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: _TimerDurationText(
+                      controller: controller,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      );
+
+  Widget _buildPortrait(BuildContext context) => FabSafeArea(
         child: Padding(
           padding: const EdgeInsets.only(bottom: _kBottomPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                  child: SizedBox.expand(
-                child: _title(context),
-              )),
+              const Expanded(
+                child: SizedBox.expand(
+                  child: _TimerSectionTitle(),
+                ),
+              ),
               Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: _kHorizontalPadding,
                   ),
-                  child: _ClockRing(
+                  child: _TimerClockRingBody(
                     controller: controller,
-                    child: _TimerSectionBody(
-                      controller: controller,
-                    ),
                   ),
                 ),
               ),
@@ -121,15 +155,22 @@ class _TimerSectionPage extends StatelessWidget {
           ),
         ),
       );
+
+  @override
+  Widget build(BuildContext context) =>
+      MediaQuery.of(context).orientation == Orientation.portrait
+          ? _buildPortrait(context)
+          : _buildLandscape(context);
 }
 
-class _TimerSectionBody extends StatelessWidget {
-  const _TimerSectionBody({
+class _TimerResetOrAddMinuteButton extends StatelessWidget {
+  const _TimerResetOrAddMinuteButton({
     Key? key,
     required this.controller,
+    this.style,
   }) : super(key: key);
-
   final TimerSectionController controller;
+  final ButtonStyle? style;
 
   Widget _button(BuildContext context, ButtonStyle style) =>
       controller.state.buildView(builder: (context, state, _) {
@@ -153,19 +194,34 @@ class _TimerSectionBody extends StatelessWidget {
       });
 
   @override
+  Widget build(BuildContext context) => _button(
+        context,
+        (style ?? const ButtonStyle()).merge(
+          ButtonStyle(
+            padding: MaterialStateProperty.all(
+              const EdgeInsets.symmetric(
+                horizontal: 24,
+              ),
+            ),
+          ),
+        ),
+      );
+}
+
+class _ClockRingChildLayout extends StatelessWidget {
+  const _ClockRingChildLayout({
+    Key? key,
+    required this.button,
+    required this.durationText,
+  }) : super(key: key);
+  final Widget button;
+  final Widget durationText;
+
+  @override
   Widget build(BuildContext context) => Stack(
         children: [
           Center(
-            child: _buildDurationWrapper(
-              context,
-              child: controller.remainingTimerDuration.build(
-                builder: (context, duration, _) => DurationWidget(
-                  duration: duration,
-                  numberStyle: context.textTheme.displayLarge,
-                  separatorStyle: context.textTheme.displayMedium,
-                ),
-              ),
-            ),
+            child: durationText,
           ),
           Positioned(
             bottom: 8 + 36,
@@ -173,28 +229,20 @@ class _TimerSectionBody extends StatelessWidget {
             right: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _button(
-                  context,
-                  ButtonStyle(
-                    fixedSize:
-                        MaterialStateProperty.all(const Size.fromHeight(32)),
-                    textStyle: MaterialStateProperty.all(
-                      context.textTheme.labelMedium
-                          .copyWith(fontWeight: FontWeight.w400),
-                    ),
-                    padding: MaterialStateProperty.all(
-                      const EdgeInsets.symmetric(
-                        horizontal: 24,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              children: [button],
             ),
           )
         ],
       );
+}
+
+class _TimerDurationText extends StatelessWidget {
+  const _TimerDurationText({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+
+  final TimerSectionController controller;
 
   DefaultTextStyle _buildDurationWrapper(
     BuildContext context, {
@@ -208,6 +256,45 @@ class _TimerSectionBody extends StatelessWidget {
           canBlink: controller.state
               .map((state) => state == TimerSectionState.paused),
           child: child,
+        ),
+      );
+  @override
+  Widget build(BuildContext context) => _buildDurationWrapper(
+        context,
+        child: controller.remainingTimerDuration.build(
+          builder: (context, duration, _) => DurationWidget(
+            duration: duration,
+            numberStyle: context.textTheme.displayLarge,
+            separatorStyle: context.textTheme.displayMedium,
+          ),
+        ),
+      );
+}
+
+class _TimerClockRingBody extends StatelessWidget {
+  const _TimerClockRingBody({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+
+  final TimerSectionController controller;
+  @override
+  Widget build(BuildContext context) => _ClockRing(
+        controller: controller,
+        child: _ClockRingChildLayout(
+          button: _TimerResetOrAddMinuteButton(
+            controller: controller,
+            style: ButtonStyle(
+              fixedSize: MaterialStateProperty.all(const Size.fromHeight(32)),
+              textStyle: MaterialStateProperty.all(
+                context.textTheme.labelMedium
+                    .copyWith(fontWeight: FontWeight.w400),
+              ),
+            ),
+          ),
+          durationText: _TimerDurationText(
+            controller: controller,
+          ),
         ),
       );
 }
@@ -250,8 +337,11 @@ class TimerPage extends StatelessWidget {
   final TimerPageController controller;
 
   Widget _buildAddPage(BuildContext context) => FabSafeArea(
-        child: TimeKeypad(
-            controller: controller.addSectionController.keypadController),
+        child: TimeKeypadAndVisor(
+          controller: controller.addSectionController.keypadController,
+          isLandscape:
+              MediaQuery.of(context).orientation == Orientation.landscape,
+        ),
       );
   Widget _buildTimersView(BuildContext context) =>
       _TimersView(controller: controller);
