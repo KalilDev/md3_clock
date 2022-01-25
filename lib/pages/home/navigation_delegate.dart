@@ -19,6 +19,16 @@ class ClockNavigationDelegate extends MD3NavigationDelegate {
     required this.appBar,
   });
 
+  static const kBodyMinimumMargin = MD3SizeClassProperty<double?>.every(
+    compact: 16,
+    medium: null,
+    expanded: null,
+  );
+  static const kBodyMaximumMargin = MD3SizeClassProperty<double?>.every(
+    compact: 16,
+    medium: null,
+    expanded: null,
+  );
   MD3AdaptativeScaffoldSpec _build(
     BuildContext context,
     MD3NavigationSpec spec,
@@ -61,12 +71,16 @@ class ClockNavigationDelegate extends MD3NavigationDelegate {
         bottomNavigationBar: bottomNavigationBar,
         body: floatingActionButton != null
             ? MD3ScaffoldBody.noMargin(
-                child: _HomePageLandscapeLayout(
-                  floatingActionButton: floatingActionButton!,
-                  child: body,
+                minimumMargin: kBodyMinimumMargin,
+                maximumMargin: kBodyMaximumMargin,
+                child: SafeArea(
+                  child: _HomePageLandscapeLayout(
+                    floatingActionButton: floatingActionButton!,
+                    child: body,
+                  ),
                 ),
               )
-            : body,
+            : SafeArea(child: body),
       );
     }
     return MD3AdaptativeScaffoldSpec(
@@ -76,7 +90,11 @@ class ClockNavigationDelegate extends MD3NavigationDelegate {
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
       bottomNavigationBar: bottomNavigationBar,
-      body: body,
+      body: MD3ScaffoldBody(
+        minimumMargin: kBodyMinimumMargin,
+        maximumMargin: kBodyMaximumMargin,
+        child: SafeArea(child: body),
+      ),
     );
   }
 

@@ -148,10 +148,13 @@ class _ClockHomePageState extends State<ClockHomePage> {
       // placeholder, so that the appbar title is aligned with the body
       // elements.
       implyLeadingPlaceholder: false,
-      titleSpacing: MD3ScaffoldBody.marginFor(
+      titleSpacing: 24,
+      /*MD3ScaffoldBody.marginFor(
         MediaQuery.of(context).size.width,
         context.sizeClass,
-      ),
+        minMargin: ClockNavigationDelegate.kBodyMinimumMargin,
+        maxMargin: ClockNavigationDelegate.kBodyMaximumMargin,
+      ),*/
       actions: [
         Builder(
           builder: (context) => IconButton(
