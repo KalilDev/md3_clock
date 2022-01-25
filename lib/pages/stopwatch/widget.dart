@@ -237,8 +237,10 @@ class _LapsList extends StatelessWidget {
   const _LapsList({
     Key? key,
     required this.controller,
+    this.shrinkWrap = false,
   }) : super(key: key);
   final StopwatchPageController controller;
+  final bool shrinkWrap;
 
   Widget _wrapWithInheritedWidth(
     BuildContext context, {
@@ -256,6 +258,7 @@ class _LapsList extends StatelessWidget {
         builder: (context, laps, _) => ListView.builder(
           primary: false,
           padding: FabSafeArea.fabPaddingFor(context),
+          shrinkWrap: shrinkWrap,
           prototypeItem: const _Lap(
             lap: Lap.zero,
             widthInfo: _LapWidthInfo(
@@ -296,18 +299,23 @@ class _LapAndLastLapFraction {
       lapFraction == null ? null : lapFraction!.clamp(0.0, 1.0);
 }
 
-class _AnimatedText extends StatelessWidget {
-  const _AnimatedText({
+class _StopwatchDurationText extends StatelessWidget {
+  const _StopwatchDurationText({
     Key? key,
     required this.controller,
   }) : super(key: key);
   final StopwatchPageController controller;
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: controller.totalElapsedTime.build(
-          builder: (context, duration, _) =>
-              _body(context, DurationComponents.fromDuration(duration)),
+  Widget build(BuildContext context) => DefaultTextStyle(
+        style: TextStyle(color: context.colorScheme.onSurface),
+        child: BlinkingTextStyle(
+          canBlink:
+              controller.state.map((state) => state == StopwatchState.paused),
+          child: controller.totalElapsedTime.build(
+            builder: (context, duration, _) =>
+                _body(context, DurationComponents.fromDuration(duration)),
+          ),
         ),
       );
 
@@ -336,19 +344,10 @@ class _ClockRing extends StatelessWidget {
   const _ClockRing({
     Key? key,
     required this.controller,
+    required this.child,
   }) : super(key: key);
   final StopwatchPageController controller;
-
-  Widget _buildView(BuildContext context) => DefaultTextStyle(
-        style: TextStyle(color: context.colorScheme.onSurface),
-        child: BlinkingTextStyle(
-          canBlink:
-              controller.state.map((state) => state == StopwatchState.paused),
-          child: _AnimatedText(
-            controller: controller,
-          ),
-        ),
-      );
+  final Widget child;
 
   Widget _clockRing(
     BuildContext context, {
@@ -415,7 +414,7 @@ class _ClockRing extends StatelessWidget {
           context,
           child: _clockRing(
             context,
-            child: _buildView(context),
+            child: child,
           ),
         ),
       );
@@ -518,29 +517,17 @@ class _SizeTransitioned extends StatelessWidget {
   }
 }
 
-class StopwatchPage extends StatelessWidget {
-  const StopwatchPage({
+class _FabScrim extends StatelessWidget {
+  const _FabScrim({
     Key? key,
-    required this.controller,
+    required this.child,
   }) : super(key: key);
-  final StopwatchPageController controller;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) => Stack(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _ClockRing(controller: controller),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: kPaddingOverTheFAB),
-                  child: _LapsListSection(controller: controller),
-                ),
-              ),
-            ],
-          ),
+          child,
           const Positioned(
             bottom: kPaddingOverTheFAB,
             left: 0,
@@ -549,6 +536,59 @@ class StopwatchPage extends StatelessWidget {
           )
         ],
       );
+}
+
+class StopwatchPage extends StatelessWidget {
+  const StopwatchPage({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+  final StopwatchPageController controller;
+
+  Widget _buildPortrait(BuildContext context) => _FabScrim(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _ClockRing(
+              controller: controller,
+              child: Center(
+                child: _StopwatchDurationText(
+                  controller: controller,
+                ),
+              ),
+            ),
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: kPaddingOverTheFAB),
+                child: _LapsListSection(controller: controller),
+              ),
+            ),
+          ],
+        ),
+      );
+
+  Widget _buildLandscape(BuildContext context) => Center(
+        child: controller.hasLaps.build(
+          builder: (context, hasLaps, _) => AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: hasLaps
+                ? Center(
+                    child: _LapsList(
+                      controller: controller,
+                      shrinkWrap: true,
+                    ),
+                  )
+                : _StopwatchDurationText(controller: controller),
+          ),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) =>
+      MediaQuery.of(context).orientation == Orientation.portrait
+          ? _buildPortrait(context)
+          : _buildLandscape(context);
 }
 
 class StopwatchPageFab extends StatelessWidget {
