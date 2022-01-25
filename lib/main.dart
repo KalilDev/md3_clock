@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final monetTheme = palette.source != PaletteSource.platform
+    final monetTheme = (palette.source != PaletteSource.platform || kDebugMode)
         ? ClockTheme.baseline
         : ClockTheme.fromPlatform(palette);
     return MD3Themes(
