@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
+import 'package:md3_clock/utils/theme.dart';
 import 'package:value_notifier/value_notifier.dart';
 
 import '../../model/city.dart';
@@ -41,8 +42,19 @@ class ClockPageFab extends StatelessWidget {
     }
 
     if (useLargeFab(context)) {
-      return MD3FloatingActionButton.large(onPressed: onPressed, child: child);
+      return MD3FloatingActionButton.large(
+        colorScheme: primarySchemeOf(context),
+        onPressed: onPressed,
+        child: IconTheme.merge(
+          data: const IconThemeData(size: 24),
+          child: child,
+        ),
+      );
     }
-    return MD3FloatingActionButton(onPressed: onPressed, child: child);
+    return MD3FloatingActionButton(
+      colorScheme: primarySchemeOf(context),
+      onPressed: onPressed,
+      child: child,
+    );
   }
 }

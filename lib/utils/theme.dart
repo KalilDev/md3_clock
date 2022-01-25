@@ -6,6 +6,17 @@ import 'package:material_widgets/material_widgets.dart';
 import 'package:material_color_utilities/material_color_utilities.dart';
 import 'package:monet_theme/monet_theme.dart';
 
+// An primary color scheme to be used with MD3FloatingActionButtons
+CustomColorScheme primarySchemeOf(BuildContext context) {
+  final scheme = context.colorScheme;
+  return CustomColorScheme(
+    color: scheme.primary,
+    onColor: scheme.onPrimary,
+    colorContainer: scheme.primary,
+    onColorContainer: scheme.onPrimary,
+  );
+}
+
 int _androidToTone(int android) => 100 - (android ~/ 10);
 int _toneToAndroid(int tone) => 1000 - (tone * 10);
 TonalPalette _commonTonalPaletteFromAndroidPalette(Map<int, int> map) {

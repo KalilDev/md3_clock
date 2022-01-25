@@ -11,6 +11,7 @@ import '../../components/alarm_item/controller.dart';
 import '../../components/alarm_item/widget.dart';
 import '../../model/alarm.dart';
 import '../../model/weekday.dart';
+import '../../utils/theme.dart';
 import 'controller.dart';
 
 const kAnimatedListDuration = Duration(milliseconds: 500);
@@ -228,11 +229,16 @@ class AlarmPageFab extends StatelessWidget {
     if (useLargeFab(context)) {
       return MD3FloatingActionButton.large(
         onPressed: onPressed,
-        child: child,
+        colorScheme: primarySchemeOf(context),
+        child: IconTheme.merge(
+          data: const IconThemeData(size: 24),
+          child: child,
+        ),
       );
     }
     return MD3FloatingActionButton(
       onPressed: onPressed,
+      colorScheme: primarySchemeOf(context),
       child: child,
     );
   }
