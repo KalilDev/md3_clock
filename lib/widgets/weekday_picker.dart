@@ -3,7 +3,9 @@ import 'package:material_widgets/material_widgets.dart';
 
 import '../model/weekday.dart';
 
-const _kWeekdaySize = 28.0;
+const _kWeekdaySize = 32.0;
+const _kWeekdayMinSep = 6.0;
+const _weekdayMinSpace = SizedBox(width: _kWeekdayMinSep);
 
 class WeekdaysPicker extends StatelessWidget {
   const WeekdaysPicker({
@@ -70,10 +72,30 @@ class WeekdaysPicker extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: Weekday.values.map((e) => _buildValue(context, e)).toList(),
+  Widget build(BuildContext context) => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: Weekday.values
+              .map((e) => _buildValue(context, e))
+              .interleaved((_) => _weekdayMinSpace)
+              .toList(),
+        ),
       );
+}
+
+extension _Interleaved<T> on Iterable<T> {
+  Iterable<T> interleaved(T Function(int) interleaveBuilder) sync* {
+    int i = -1;
+    for (final e in this) {
+      if (i == -1) {
+        i++;
+      } else {
+        yield interleaveBuilder(i++);
+      }
+      yield e;
+    }
+  }
 }
 
 extension on Weekday {
