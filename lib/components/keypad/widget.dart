@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:value_notifier/value_notifier.dart';
@@ -11,16 +12,18 @@ class _TimeKeypad extends StatelessWidget {
     required this.onZeroZero,
     required this.onDelete,
     required this.onClear,
+    required this.isPortrait,
   }) : super(key: key);
   final ValueChanged<int> onDigit;
   final VoidCallback onZeroZero;
   final VoidCallback onDelete;
   final VoidCallback onClear;
+  final bool isPortrait;
 
   static const _kHorizontalSpacing = 36.0;
   static const _kVerticalSpacing = 4.0;
-  static const _h = SizedBox(width: _kHorizontalSpacing);
-  static const _v = SizedBox(height: _kVerticalSpacing);
+  Widget get _h => SizedBox(width: isPortrait ? _kHorizontalSpacing : 4.0);
+  Widget get _v => SizedBox(height: isPortrait ? _kVerticalSpacing : 8.0);
 
   Widget _button(
     BuildContext context, {
@@ -40,6 +43,9 @@ class _TimeKeypad extends StatelessWidget {
                         borderRadius: BorderRadius.circular(24))
                     : null,
               ),
+              padding: MaterialStateProperty.all(
+                const EdgeInsets.all(2.0),
+              ),
               textStyle: MaterialStateProperty.all(
                 context.textTheme.headlineLarge,
               ),
@@ -49,13 +55,16 @@ class _TimeKeypad extends StatelessWidget {
                     : null,
               ),
               elevation: MaterialStateProperty.all(
-                  fabColorScheme == MD3FABColorScheme.primary ? 0.0 : null),
+                  fabColorScheme == MD3FABColorScheme.secondary ? 0.0 : null),
             ),
             onLongPress: onLongPress,
             fabColorScheme: fabColorScheme,
             onPressed: onPressed,
             isLowered: true,
-            child: child,
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: child,
+            ),
           ),
         ),
       );
@@ -75,7 +84,7 @@ class _TimeKeypad extends StatelessWidget {
         context,
         onPressed: onDelete,
         onLongPress: onClear,
-        fabColorScheme: MD3FABColorScheme.primary,
+        fabColorScheme: MD3FABColorScheme.secondary,
         child: Icon(Icons.backspace_outlined),
       );
   Widget _row(List<Widget> children) => Flexible(
@@ -106,10 +115,11 @@ class _TimeKeypad extends StatelessWidget {
       );
 }
 
-class TimeKeypad extends StatelessWidget {
-  const TimeKeypad({Key? key, required this.controller}) : super(key: key);
-  final TimeKeypadController controller;
+class TimeKeypadVisor extends StatelessWidget {
+  const TimeKeypadVisor({Key? key, required this.result}) : super(key: key);
+  final ValueListenable<TimeKeypadResult> result;
 
+  static const _h = SizedBox(width: 16);
   Widget _displayText(BuildContext context, String text) => Text(
         text,
         style: context.textTheme.displayLarge,
@@ -128,9 +138,6 @@ class TimeKeypad extends StatelessWidget {
           _auxText(context, abbr),
         ],
       );
-
-  static const _h = SizedBox(width: 16);
-
   Widget _buildVisor(BuildContext context, TimeKeypadResult result) =>
       AnimatedDefaultTextStyle(
         child: Row(
@@ -151,21 +158,46 @@ class TimeKeypad extends StatelessWidget {
         duration: Duration(milliseconds: 300),
       );
   static String _valueToString(int value) => value.toString().padLeft(2, '0');
-  Widget _buildKeypad(BuildContext context) => _TimeKeypad(
+  @override
+  Widget build(BuildContext context) => result.buildView(
+        builder: (context, result, _) => _buildVisor(context, result),
+      );
+}
+
+class TimeKeypad extends StatelessWidget {
+  const TimeKeypad({
+    Key? key,
+    required this.controller,
+    this.isPortrait = false,
+  }) : super(key: key);
+  final TimeKeypadController controller;
+  final bool isPortrait;
+
+  @override
+  Widget build(BuildContext context) => _TimeKeypad(
         onDigit: controller.onDigit,
         onZeroZero: controller.onZeroZero,
         onDelete: controller.onDelete,
         onClear: controller.onClear,
+        isPortrait: isPortrait,
       );
-  @override
-  Widget build(BuildContext context) => Column(
+}
+
+class TimeKeypadAndVisor extends StatelessWidget {
+  const TimeKeypadAndVisor({
+    Key? key,
+    required this.controller,
+    this.isLandscape = false,
+  }) : super(key: key);
+  final TimeKeypadController controller;
+  final bool isLandscape;
+
+  Widget _buildPortrait(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Spacer(),
-          controller.result.buildView(
-            builder: (context, result, _) => _buildVisor(context, result),
-          ),
+          TimeKeypadVisor(result: controller.result),
           Spacer(),
           Flexible(
             flex: 8,
@@ -175,9 +207,38 @@ class TimeKeypad extends StatelessWidget {
                 right: 8.0,
                 bottom: 16.0,
               ),
-              child: _buildKeypad(context),
+              child: TimeKeypad(
+                controller: controller,
+              ),
             ),
           ),
         ],
       );
+
+  Widget _buildLandscape(BuildContext context) => Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            flex: 3,
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: TimeKeypadVisor(result: controller.result),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: TimeKeypad(
+              controller: controller,
+              isPortrait: false,
+            ),
+          ),
+        ],
+      );
+
+  @override
+  Widget build(BuildContext context) =>
+      MediaQuery.of(context).orientation == Orientation.landscape
+          ? _buildLandscape(context)
+          : _buildPortrait(context);
 }
