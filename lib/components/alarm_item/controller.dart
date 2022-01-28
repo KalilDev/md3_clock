@@ -5,7 +5,7 @@ import 'package:value_notifier/value_notifier.dart';
 import '../../model/alarm.dart';
 import '../../model/weekday.dart';
 
-class AlarmItemController extends IDisposableBase {
+class AlarmItemController extends ControllerBase {
   final ValueNotifier<TimeOfDay> _time;
   final ValueNotifier<String> _marker;
   // TODO: null when default and on the view get it from somewhere.
@@ -59,10 +59,7 @@ class AlarmItemController extends IDisposableBase {
         _expanded = ValueNotifier(true),
         itemCreationTime = DateTime.now();
 
-  void delete() {
-    _didDelete.notify();
-  }
-
+  void delete() => _didDelete.notify();
   void toggleExpanded([bool requestScrollOnExpansion = true]) {
     _expanded.value = !_expanded.value;
     if (_expanded.value && requestScrollOnExpansion) {
@@ -81,7 +78,6 @@ class AlarmItemController extends IDisposableBase {
   }
 
   void requestScrollToTop() => _didRequestScrollToTop.notify();
-
   void setTime(TimeOfDay time) => _time.value = time;
   void setActive(bool value) => _active.value = value;
   void toggleVibrate() => setVibrate(!_vibrate.value);
@@ -90,6 +86,7 @@ class AlarmItemController extends IDisposableBase {
   void toggleWeekday(Weekday day) =>
       _weekdays.value = _weekdays.value.toggle(day);
 
+  @override
   void dispose() {
     IDisposable.disposeAll([
       _time,

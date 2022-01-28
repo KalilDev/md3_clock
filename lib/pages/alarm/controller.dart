@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:md3_clock/components/alarm_item/controller.dart';
 import 'package:value_notifier/value_notifier.dart';
@@ -9,71 +10,84 @@ import '../../model/weekday.dart';
 // TODO: get rid of this bs asap
 import 'widget.dart' show kAnimatedListDuration;
 
-int _compareTimeOfDay(TimeOfDay a, TimeOfDay b) {
-  if (b.hour != a.hour) {
-    return a.hour > b.hour ? 1 : -1;
-  }
-  if (a.minute == b.minute) {
-    return 0;
-  }
-  return a.minute > b.minute ? 1 : -1;
-}
+const kDefaultAlarm = Alarm('BusyBugs', true, AlarmSource.sounds);
 
-int _compareItemControllers(AlarmItemController a, AlarmItemController b) {
-  if (identical(a, b)) {
-    return 0;
-  }
-  final currentTimeComparission = _compareTimeOfDay(a.time.value, b.time.value);
-  if (currentTimeComparission != 0) {
-    return currentTimeComparission;
-  }
-  return a.itemCreationTime.compareTo(b.itemCreationTime);
-}
-
-class AlarmPageController extends IDisposableBase {
-  // dont reference/use this directly, as it is not owned by the
-  // [_AlarmPageListController]. only use it to set values on the
-  // [_itemControllers] view.
-  late final ValueNotifier<List<AlarmItemController>> __itemControllers =
-      ValueNotifier(
-    List.generate(
-      48,
-      (i) {
-        final controller = AlarmItemController.from(
-          TimeOfDay(
-            hour: i ~/ 2,
-            minute: (i % 2) * 30,
-          ),
-          '',
-          kDefaultAlarm,
-          Weekdays({}),
-          i.isEven,
-          true,
-          false,
-          DateTime.now(),
-        );
-        _registerAlarmItemController(controller);
-        return controller;
-      },
-    ),
-  );
-  late final IDisposableValueListenable<
-          UnmodifiableListView<AlarmItemController>> _itemControllers =
-      __itemControllers.map(
-    (items) => UnmodifiableListView(items),
-  );
-  IDisposableValueListenable<UnmodifiableListView<AlarmItemController>>
-      get itemControllers => _itemControllers;
+class AlarmPageController extends ControllerBase {
+  late final ListValueNotifier<AlarmItemController> _itemControllers;
   final EventNotifier<IndexAndController> _didRemoveItem = EventNotifier();
-  IDisposableValueListenable<IndexAndController> get didRemoveItem =>
-      _didRemoveItem.viewNexts();
   final EventNotifier<int> _didInsertItem = EventNotifier();
-  IDisposableValueListenable<int> get didInsertItem =>
-      _didInsertItem.viewNexts();
+
+  AlarmPageController()
+      : _itemControllers = ListValueNotifier.generate(
+          48,
+          (i) => AlarmItemController.from(
+            TimeOfDay(
+              hour: i ~/ 2,
+              minute: (i % 2) * 30,
+            ),
+            '',
+            kDefaultAlarm,
+            Weekdays({}),
+            i.isEven,
+            true,
+            false,
+            DateTime.now(),
+          ),
+        ) {
+    init();
+  }
+
+  ValueListenable<UnmodifiableListView<AlarmItemController>>
+      get itemControllers => _itemControllers.view();
+  ValueListenable<IndexAndController> get didRemoveItem =>
+      _didRemoveItem.viewNexts();
+  ValueListenable<int> get didInsertItem => _didInsertItem.viewNexts();
+
+  void addNewAlarm(TimeOfDay initialTime) async {
+    final controller = AlarmItemController.create(initialTime, kDefaultAlarm);
+    _registerAlarmItemController(controller);
+
+    final currentItemControllers = _itemControllers.value;
+
+    // Sorted list linear scan for maybe finding the sorted target index.
+    // time complexity: O(n)
+    // space complexity: O(1)
+    //
+    // An possible improvement would be to binary search the target pos. But
+    // hey! this does not matter, the slow part is the ui.
+
+    int sortedItemIndex = -1;
+    for (var i = 0; i < currentItemControllers.length; i++) {
+      final controllerAtI = currentItemControllers[i];
+      final comparissionResult =
+          _compareItemControllers(controller, controllerAtI);
+      if (comparissionResult != -1) {
+        // We did not reach the item right after the sorted position yet.
+        continue;
+      }
+      sortedItemIndex = i;
+      break;
+    }
+    if (sortedItemIndex == -1) {
+      // If we did not find an item that is after the target position, then the
+      // target position is the end of the list.
+      sortedItemIndex = currentItemControllers.length - 1;
+    }
+    _insertController(controller, sortedItemIndex);
+    await _listAnimationFuture;
+    controller.requestScrollToTop();
+  }
+
+  void init() {
+    for (final controller in _itemControllers) {
+      _registerAlarmItemController(controller);
+    }
+    super.init();
+  }
 
   void dispose() {
     IDisposable.disposeAll(
-      __itemControllers.value,
+      _itemControllers,
     );
 
     IDisposable.disposeAll(
@@ -87,31 +101,27 @@ class AlarmPageController extends IDisposableBase {
   }
 
   void _removeController(AlarmItemController controller) {
-    final index = __itemControllers.value.indexOf(controller);
-    __itemControllers.value.removeAt(index);
-    // ignore: invalid_use_of_protected_member
-    __itemControllers.notifyListeners();
+    final index = _itemControllers.indexOf(controller);
+    _itemControllers.removeAt(index);
     _didRemoveItem.add(IndexAndController(index, controller));
   }
 
   void _insertController(AlarmItemController controller, int index) {
-    __itemControllers.value.insert(index, controller);
-    // ignore: invalid_use_of_protected_member
-    __itemControllers.notifyListeners();
+    _itemControllers.insert(index, controller);
     _didInsertItem.add(index);
   }
 
   void _deleteController(AlarmItemController controller) async {
     _removeController(controller);
-    await listAnimationFuture;
+    await _listAnimationFuture;
     WidgetsBinding.instance!.addPostFrameCallback((_) => controller.dispose());
   }
 
   void _onControllerTimeChanged(AlarmItemController controller) async {
-    if (__itemControllers.value.length == 1) {
+    if (_itemControllers.length == 1) {
       return;
     }
-    final currentItemControllers = __itemControllers.value;
+    final currentItemControllers = _itemControllers.value;
 
     // Sorted list linear scan for maybe finding the current index, and finding
     // the target sorted index.
@@ -165,51 +175,14 @@ class AlarmPageController extends IDisposableBase {
     }
     _removeController(controller);
     _insertController(controller, sortedItemIndex);
-    await listAnimationFuture;
+    await _listAnimationFuture;
     WidgetsBinding.instance!.addPostFrameCallback(
       (_) => controller.requestScrollToTop(),
     );
   }
 
-  static const kDefaultAlarm = Alarm('BusyBugs', true, AlarmSource.sounds);
-
-  void addNewAlarm(TimeOfDay initialTime) async {
-    final controller = AlarmItemController.create(initialTime, kDefaultAlarm);
-    _registerAlarmItemController(controller);
-
-    final currentItemControllers = __itemControllers.value;
-
-    // Sorted list linear scan for maybe finding the sorted target index.
-    // time complexity: O(n)
-    // space complexity: O(1)
-    //
-    // An possible improvement would be to binary search the target pos. But
-    // hey! this does not matter, the slow part is the ui.
-
-    int sortedItemIndex = -1;
-    for (var i = 0; i < currentItemControllers.length; i++) {
-      final controllerAtI = currentItemControllers[i];
-      final comparissionResult =
-          _compareItemControllers(controller, controllerAtI);
-      if (comparissionResult != -1) {
-        // We did not reach the item right after the sorted position yet.
-        continue;
-      }
-      sortedItemIndex = i;
-      break;
-    }
-    if (sortedItemIndex == -1) {
-      // If we did not find an item that is after the target position, then the
-      // target position is the end of the list.
-      sortedItemIndex = currentItemControllers.length - 1;
-    }
-    _insertController(controller, sortedItemIndex);
-    await listAnimationFuture;
-    controller.requestScrollToTop();
-  }
-
   // TODO: do this properly, FUCK,this.
-  static Future<void> get listAnimationFuture =>
+  static Future<void> get _listAnimationFuture =>
       Future.delayed(kAnimatedListDuration)
           .then((_) => print('Awaited animation'));
 
@@ -224,4 +197,25 @@ class IndexAndController {
   final AlarmItemController controller;
 
   IndexAndController(this.index, this.controller);
+}
+
+int _compareTimeOfDay(TimeOfDay a, TimeOfDay b) {
+  if (b.hour != a.hour) {
+    return a.hour > b.hour ? 1 : -1;
+  }
+  if (a.minute == b.minute) {
+    return 0;
+  }
+  return a.minute > b.minute ? 1 : -1;
+}
+
+int _compareItemControllers(AlarmItemController a, AlarmItemController b) {
+  if (identical(a, b)) {
+    return 0;
+  }
+  final currentTimeComparission = _compareTimeOfDay(a.time.value, b.time.value);
+  if (currentTimeComparission != 0) {
+    return currentTimeComparission;
+  }
+  return a.itemCreationTime.compareTo(b.itemCreationTime);
 }

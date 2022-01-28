@@ -41,14 +41,15 @@ class TimeKeypadResult {
       );
 }
 
-class TimeKeypadController extends IDisposableBase {
+class TimeKeypadController extends ControllerBase {
+  final ValueNotifier<TimeKeypadResult> _result;
+
   TimeKeypadController.zero() : _result = ValueNotifier(TimeKeypadResult.zero);
   TimeKeypadController.from(
     int hours,
     int minutes,
     int seconds,
   ) : _result = ValueNotifier(TimeKeypadResult.from(hours, minutes, seconds));
-  final ValueNotifier<TimeKeypadResult> _result;
 
   ValueListenable<TimeKeypadResult> get result => _result.view();
   ValueListenable<bool> get isResultEmpty =>

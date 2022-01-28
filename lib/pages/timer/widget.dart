@@ -35,10 +35,9 @@ class __TimersViewState extends State<_TimersView> {
   late final IDisposable _connections;
   void initState() {
     super.initState();
-    print('init timers view');
-    final initialPage = widget.controller.currentPageValue!;
+    final initialPage = widget.controller.currentPage.value ?? 0;
     _pageController = PageController(
-      initialPage: widget.controller.currentPageValue!,
+      initialPage: initialPage,
     );
     _connections = IDisposable.merge([
       widget.controller.didMoveToSection.tap(_onJumpToSection),
