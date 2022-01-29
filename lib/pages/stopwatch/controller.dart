@@ -35,21 +35,25 @@ class StopwatchPageController extends ControllerBase {
     centerState: CenterFABState.play,
     showRightIcon: false,
   );
+  final ITick _ticker;
 
-  factory StopwatchPageController() => StopwatchPageController.from(
+  factory StopwatchPageController(ITick ticker) => StopwatchPageController.from(
         StopwatchState.idle,
         Duration.zero,
         Duration.zero,
+        ticker,
       );
 
   StopwatchPageController.from(
     StopwatchState state,
     Duration totalElapsedTime,
     Duration lapElapsedTime,
+    ITick ticker,
   )   : _state = ValueNotifier(state),
         _laps = ListValueNotifier.empty(),
         _totalElapsedTime = ValueNotifier(totalElapsedTime),
-        _lapElapsedTime = ValueNotifier(lapElapsedTime) {
+        _lapElapsedTime = ValueNotifier(lapElapsedTime),
+        _ticker = ticker {
     init();
   }
 
@@ -128,6 +132,8 @@ class StopwatchPageController extends ControllerBase {
     fabCenterState.tap(fabController.setCenterState, includeInitial: true);
     canReset.tap(fabController.setShowLeftIcon, includeInitial: true);
     canAddLap.tap(fabController.setShowRightIcon, includeInitial: true);
+    _ticker.elapsedTick.tap(_onTick);
+    _ticker.start(paused: true);
   }
 
   @override
@@ -139,8 +145,8 @@ class StopwatchPageController extends ControllerBase {
       _lapElapsedTime,
       _currentLap,
       fabController,
+      _ticker
     ]);
-    _ticker.cancel();
     super.dispose();
   }
 
@@ -160,11 +166,9 @@ class StopwatchPageController extends ControllerBase {
             ),
           );
 
-  // start the ticker paused
-  late final StreamSubscription<Duration> _ticker =
-      createTickerStream().listen(_onTick)..pause();
   Duration? get _firstLapDuration =>
       _laps.isEmpty ? null : _laps.first.duration;
+
   void _onTick(Duration elapsed) {
     _totalElapsedTime.value += elapsed;
     _lapElapsedTime.value += elapsed;

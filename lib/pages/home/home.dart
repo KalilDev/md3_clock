@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
+import 'package:md3_clock/utils/chrono.dart';
 import 'package:md3_clock/widgets/switcher.dart';
 import 'package:value_notifier/value_notifier.dart';
 
@@ -28,6 +29,7 @@ class _ClockPageSpec {
 }
 
 class ClockHomePageController extends IDisposableBase {
+  final ICreateTickers _vsync;
   final ValueNotifier<int> _index = ValueNotifier(0);
   late final IDisposableValueListenable<_ClockPageSpec> currentPage =
       _index.view().map((index) => pages[index]);
@@ -48,6 +50,7 @@ class ClockHomePageController extends IDisposableBase {
   final clockPageController = ClockPageController();
   final timerPageController = TimerPageController();
   final stopwatchPageController = StopwatchPageController();
+  late final stopwatchPageController = StopwatchPageController(_vsync.createTicker());
   late final List<_ClockPageSpec> pages = [
     _ClockPageSpec(
       item: NavigationItem(labelText: 'Alarme', icon: const Icon(Icons.alarm)),
@@ -79,6 +82,8 @@ class ClockHomePageController extends IDisposableBase {
     ),
   ];
 
+  ClockHomePageController(this._vsync);
+
   void setIndex(int i) => _index.value = i;
 
   @override
@@ -97,8 +102,9 @@ class ClockHomePage extends StatefulWidget {
   State<ClockHomePage> createState() => _ClockHomePageState();
 }
 
-class _ClockHomePageState extends State<ClockHomePage> {
-  final controller = ClockHomePageController();
+class _ClockHomePageState extends State<ClockHomePage> with SingleTickerProviderStateMixin {
+  late final vsync = FlutterTickerFactory(vsync: this);
+  late final controller = ClockHomePageController(vsync);
   late final _fabNotifier =
       controller.currentPage.view().map((page) => page.floatingActionButton);
   void initState() {
@@ -112,6 +118,7 @@ class _ClockHomePageState extends State<ClockHomePage> {
 
   void dispose() {
     _fabNotifier.dispose();
+    vsync.dispose();
     super.dispose();
   }
 
