@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
+import 'package:md3_clock/components/sorted_animated_list/controller.dart';
+import 'package:md3_clock/components/sorted_animated_list/widget.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
 import 'package:value_notifier/value_notifier.dart';
 
@@ -15,6 +17,56 @@ import '../../utils/theme.dart';
 import 'controller.dart';
 
 const kAnimatedListDuration = Duration(milliseconds: 500);
+
+class _AnimationStatusNotifier extends StatefulWidget {
+  const _AnimationStatusNotifier({
+    Key? key,
+    required this.onStatus,
+    required this.animation,
+    required this.status,
+    required this.child,
+  }) : super(key: key);
+  final VoidCallback onStatus;
+  final AnimationStatus status;
+  final Animation<Object?> animation;
+  final Widget child;
+
+  @override
+  __AnimationStatusNotifier createState() => __AnimationStatusNotifier();
+}
+
+class __AnimationStatusNotifier extends State<_AnimationStatusNotifier> {
+  void initState() {
+    super.initState();
+    widget.animation.addStatusListener(_onStatus);
+  }
+
+  AnimationStatus? _lastNotified;
+  void _onStatus(AnimationStatus status) {
+    if (_lastNotified == status) {
+      return;
+    }
+    _lastNotified = status;
+    widget.onStatus();
+  }
+
+  @override
+  void didUpdateWidget(_AnimationStatusNotifier oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.animation != widget.animation) {
+      oldWidget.animation.removeStatusListener(_onStatus);
+      _lastNotified = null;
+    }
+  }
+
+  void dispose() {
+    widget.animation.removeStatusListener(_onStatus);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
 
 class _ListExitTransition extends StatelessWidget {
   const _ListExitTransition({
@@ -43,21 +95,28 @@ class _ListEntranceTransition extends StatelessWidget {
   const _ListEntranceTransition({
     Key? key,
     required this.animation,
+    required this.onAnimationFinish,
     required this.child,
   }) : super(key: key);
   final Animation<double> animation;
+  final VoidCallback onAnimationFinish;
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => SizeTransition(
-        sizeFactor: animation,
-        axisAlignment: -1,
-        child: FadeTransition(
-          opacity: CurvedAnimation(
-            parent: animation,
-            curve: Interval(2 / 3, 1),
+  Widget build(BuildContext context) => _AnimationStatusNotifier(
+        animation: animation,
+        onStatus: onAnimationFinish,
+        status: AnimationStatus.completed,
+        child: SizeTransition(
+          sizeFactor: animation,
+          axisAlignment: -1,
+          child: FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Interval(2 / 3, 1),
+            ),
+            child: child,
           ),
-          child: child,
         ),
       );
 }
@@ -99,52 +158,13 @@ class _AlarmPageState extends State<AlarmPage> {
 
   void initState() {
     super.initState();
-    _updateController(widget.controller);
   }
 
   void didUpdateWidget(AlarmPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.controller != oldWidget.controller) {
-      _detachController();
-      _updateController(widget.controller);
-    }
-  }
-
-  void _updateController(AlarmPageController controller) {
-    _itemInsertHandler = controller.didInsertItem.tap(_onItemInserted);
-    _itemRemoveHandler = controller.didRemoveItem.tap(_onItemRemoved);
-  }
-
-  void _detachController() {
-    _itemInsertHandler.dispose();
-    _itemRemoveHandler.dispose();
-  }
-
-  void _onItemInserted(int index) {
-    listKey.currentState!.insertItem(
-      index,
-      duration: kAnimatedListDuration,
-    );
-  }
-
-  void _onItemRemoved(IndexAndController indexAndController) {
-    final index = indexAndController.index;
-    final controller = indexAndController.controller;
-    listKey.currentState!.removeItem(
-      index,
-      (context, animation) => _ListExitTransition(
-        key: ObjectKey(animation),
-        animation: animation,
-        child: _AlarmItemCard(
-          controller: controller,
-        ),
-      ),
-      duration: kAnimatedListDuration,
-    );
   }
 
   void dispose() {
-    _detachController();
     super.dispose();
   }
 
@@ -186,23 +206,26 @@ class _AlarmPageState extends State<AlarmPage> {
   Widget build(BuildContext context) {
     return _cardTheme(
       context,
-      child: widget.controller.itemControllers.buildView(
-        builder: (context, itemControllers, _) => AnimatedList(
-          key: listKey,
-          padding: const EdgeInsets.symmetric(
-            vertical: CardStyle.kMaxCardSpacing / 2,
+      child: SortedAnimatedList<AlarmItemController>(
+        key: listKey,
+        controller: widget.controller.alarmItemListController,
+        padding: const EdgeInsets.symmetric(
+          vertical: CardStyle.kMaxCardSpacing / 2,
+        ),
+        removingItemBuilder: (context, value, animation) => _ListExitTransition(
+          key: ObjectKey(animation),
+          animation: animation,
+          child: _AlarmItemCard(
+            controller: value,
           ),
-          itemBuilder: (c, i, a) {
-            final itemController = widget.controller.itemControllers.value[i];
-            return _ListEntranceTransition(
-              key: ObjectKey(itemController),
-              animation: a,
-              child: _AlarmItemCard(
-                controller: itemController,
-              ),
-            );
-          },
-          initialItemCount: itemControllers.length,
+        ),
+        itemBuilder: (context, value, animation) => _ListEntranceTransition(
+          key: ObjectKey(value),
+          animation: animation,
+          onAnimationFinish: value.requestScrollToTop,
+          child: _AlarmItemCard(
+            controller: value,
+          ),
         ),
       ),
     );
