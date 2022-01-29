@@ -48,8 +48,7 @@ class ClockHomePageController extends IDisposableBase {
 
   final alarmPageController = AlarmPageController();
   final clockPageController = ClockPageController();
-  final timerPageController = TimerPageController();
-  final stopwatchPageController = StopwatchPageController();
+  late final timerPageController = TimerPageController(vsync: _vsync);
   late final stopwatchPageController = StopwatchPageController(_vsync.createTicker());
   late final List<_ClockPageSpec> pages = [
     _ClockPageSpec(

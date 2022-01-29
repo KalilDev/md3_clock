@@ -21,8 +21,9 @@ class _AddSectionController extends ControllerBase with IConnectToAnFABGroup {
   final ActionNotifier _didCancel = ActionNotifier();
   final TimeKeypadController keypadController = TimeKeypadController.zero();
 
-  _AddSectionController.from(bool canCancel)
-      : _canCancel = ValueNotifier(canCancel);
+  _AddSectionController.from(
+    bool canCancel,
+  ) : _canCancel = ValueNotifier(canCancel);
 
   @override
   ValueListenable<bool> get showFabLeftIcon => _canCancel.view();
@@ -65,6 +66,33 @@ class _AddSectionController extends ControllerBase with IConnectToAnFABGroup {
   }
 }
 
+class _ActiveTimerSectionInfo {
+  final int? currentPage;
+  final bool showAddPage;
+
+  _ActiveTimerSectionInfo(this.currentPage, this.showAddPage);
+  _ActiveTimerSectionInfo withCurrentPage(int? currentPage) =>
+      _ActiveTimerSectionInfo(currentPage, showAddPage);
+  _ActiveTimerSectionInfo withShowAddPage(bool showAddPage) =>
+      _ActiveTimerSectionInfo(currentPage, showAddPage);
+  int get hashCode => Object.hashAll([
+        currentPage,
+        showAddPage,
+      ]);
+  bool operator ==(other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is _ActiveTimerSectionInfo) {
+      return true &&
+          currentPage == other.currentPage &&
+          showAddPage &&
+          other.showAddPage;
+    }
+    return false;
+  }
+}
+
 class TimerSectionController extends ControllerBase with IConnectToAnFABGroup {
   final ValueNotifier<TimerSectionState> _state;
   final Duration _timerDuration;
@@ -72,9 +100,7 @@ class TimerSectionController extends ControllerBase with IConnectToAnFABGroup {
   final ValueNotifier<Duration> _extraTime;
   final ActionNotifier _didPressAdd = ActionNotifier();
   final ActionNotifier _didDelete = ActionNotifier();
-  // start the ticker paused
-  late final StreamSubscription<Duration> _ticker =
-      createTickerStream().listen(_onTick)..pause();
+  final ITick _ticker;
   // Late final because withInitial causes an side effect.
   late final ValueListenable<Duration> _totalDuration = extraTime.map(
     (extra) {
@@ -85,12 +111,16 @@ class TimerSectionController extends ControllerBase with IConnectToAnFABGroup {
     },
   ).withInitial(_timerDuration);
 
-  factory TimerSectionController.create(Duration timerDuration) =>
+  factory TimerSectionController.create(
+    Duration timerDuration,
+    ITick ticker,
+  ) =>
       TimerSectionController.from(
         timerDuration,
         Duration.zero,
         Duration.zero,
         TimerSectionState.idle,
+        ticker,
       );
 
   TimerSectionController.from(
@@ -98,9 +128,11 @@ class TimerSectionController extends ControllerBase with IConnectToAnFABGroup {
     Duration elapsedDuration,
     Duration extraTime,
     TimerSectionState state,
+    ITick ticker,
   )   : _state = ValueNotifier(state),
         _elapsedTimerDuration = ValueNotifier(elapsedDuration),
-        _extraTime = ValueNotifier(extraTime) {
+        _extraTime = ValueNotifier(extraTime),
+        _ticker = ticker {
     init();
   }
 
@@ -204,10 +236,9 @@ class TimerSectionController extends ControllerBase with IConnectToAnFABGroup {
 
   @override
   void init() {
-    if (_state.value == TimerSectionState.running) {
-      _ticker.resume();
-    }
+    _ticker.elapsedTick.tap(_onTick);
     isOvershooting.tap(_onIsOvershooting);
+    _ticker.start(paused: _state.value != TimerSectionState.running);
     super.init();
   }
 
@@ -218,8 +249,8 @@ class TimerSectionController extends ControllerBase with IConnectToAnFABGroup {
       _didPressAdd,
       _state,
       _elapsedTimerDuration,
+      _ticker,
     ]);
-    _ticker.cancel();
     super.dispose();
   }
 
@@ -231,7 +262,9 @@ class TimerSectionController extends ControllerBase with IConnectToAnFABGroup {
 
   void _setState(TimerSectionState state) => _state.value = state;
   void _onTick(Duration elapsedTime) {
-    _elapsedTimerDuration.value += elapsedTime;
+    final elapsedTimer = _elapsedTimerDuration.value;
+    final elapsedWithTick = elapsedTimer + elapsedTime;
+    _elapsedTimerDuration.value = elapsedWithTick;
   }
 }
 
@@ -239,9 +272,9 @@ class TimerPageController extends ControllerBase
     with FABGroupConnectionManagerMixin {
   final ListValueNotifier<TimerSectionController> _timers;
   final _AddSectionController _addSectionController;
-  final ValueNotifier<bool> _showAddPage;
-  final ValueNotifier<int?> _currentPage;
+  final ValueNotifier<_ActiveTimerSectionInfo> _activeTimerSectionInfo;
   final EventNotifier<int> _didMoveToSection = EventNotifier();
+  final ICreateTickers _tickerFactory;
 
   @override
   final FABGroupController fabGroupController = FABGroupController.from(
@@ -250,27 +283,41 @@ class TimerPageController extends ControllerBase
     showRightIcon: false,
   );
 
-  factory TimerPageController() => TimerPageController.from([]);
+  factory TimerPageController({
+    required ICreateTickers vsync,
+  }) =>
+      TimerPageController.from(
+        [],
+        vsync: vsync,
+      );
 
-  TimerPageController.from(List<TimerSectionController> controllers,
-      [int? currentPage])
-      : _timers = ListValueNotifier.of(controllers),
+  TimerPageController.from(
+    List<TimerSectionController> controllers, {
+    int? currentPage,
+    required ICreateTickers vsync,
+  })  : _timers = ListValueNotifier.of(controllers),
         _addSectionController =
             _AddSectionController.from(controllers.isNotEmpty),
-        _showAddPage = ValueNotifier(controllers.isEmpty),
-        _currentPage =
-            ValueNotifier(controllers.isEmpty ? null : (currentPage ?? 0)) {
+        _activeTimerSectionInfo = ValueNotifier(_ActiveTimerSectionInfo(
+          controllers.isEmpty ? null : (currentPage ?? 0),
+          controllers.isEmpty,
+        )),
+        _tickerFactory = vsync {
     init();
   }
 
   ValueListenable<UnmodifiableListView<TimerSectionController>> get timers =>
       _timers.view();
   _AddSectionController get addSectionController => _addSectionController;
-  ValueListenable<bool> get showAddPage => _showAddPage.view();
-  ValueListenable<int?> get currentPage => _currentPage.view();
   ValueListenable<int> get didMoveToSection => _didMoveToSection.viewNexts();
 
-  void onPageChange(int currentPage) => _currentPage.value = currentPage;
+  ValueListenable<bool> get showAddPage =>
+      _activeTimerSectionInfo.view().map((info) => info.showAddPage);
+  ValueListenable<int?> get currentPage =>
+      _activeTimerSectionInfo.view().map((info) => info.currentPage);
+
+  void onPageChange(int currentPage) => _activeTimerSectionInfo.value =
+      _activeTimerSectionInfo.value.withCurrentPage(currentPage);
 
   late final MergingIDisposable _bindings;
 
@@ -294,7 +341,7 @@ class TimerPageController extends ControllerBase
     IDisposable.disposeAll([
       _bindings,
       _timers,
-      _currentPage,
+      _activeTimerSectionInfo,
       _addSectionController,
       _didMoveToSection,
     ]);
@@ -325,32 +372,33 @@ class TimerPageController extends ControllerBase
   }
 
   void _onAdd() {
-    _showAddPage.value = true;
+    _activeTimerSectionInfo.value =
+        _activeTimerSectionInfo.value.withShowAddPage(true);
     _addSectionController.clear();
   }
 
   void _onCancelAdd() {
-    _showAddPage.value = false;
+    _activeTimerSectionInfo.value =
+        _activeTimerSectionInfo.value.withShowAddPage(false);
     _addSectionController.clear();
   }
 
   void _onStartAdded(TimeKeypadResult result) {
     final timerDuration = result.toDuration();
-    final timerController = TimerSectionController.create(timerDuration);
+    final timerController = TimerSectionController.create(
+      timerDuration,
+      _tickerFactory.createTicker(),
+    );
     _registerTimer(timerController);
     timerController.onStart();
     _addAndSetToTimer(timerController);
-    // set it last because otherwise we would fail an null assert
-    // when adding the first timer.
-    _showAddPage.value = false;
   }
 
   void _addAndSetToTimer(TimerSectionController timer) {
     _timers.add(timer);
     final targetPage = _timers.length - 1;
-    print(targetPage);
     // Already set it because the view is expected to instantly move to the view
-    _currentPage.value = targetPage;
+    _activeTimerSectionInfo.value = _ActiveTimerSectionInfo(targetPage, false);
     _didMoveToSection.add(targetPage);
   }
 
@@ -361,13 +409,14 @@ class TimerPageController extends ControllerBase
       final index = timers.indexOf(timer);
       timers.removeAt(index);
       if (timers.isEmpty) {
-        _currentPage.value = null;
-        _showAddPage.value = true;
+        _activeTimerSectionInfo.value = _ActiveTimerSectionInfo(null, true);
         _addSectionController.clear();
       } else {
-        _currentPage.value = _currentPage.value! >= index
-            ? _currentPage.value! - 1
-            : _currentPage.value;
+        final currentPage = _activeTimerSectionInfo.value.currentPage;
+        final targetPage =
+            currentPage! >= index ? currentPage - 1 : currentPage;
+        _activeTimerSectionInfo.value =
+            _activeTimerSectionInfo.value.withCurrentPage(targetPage);
       }
     });
     timer.dispose();
