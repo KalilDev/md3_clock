@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 
@@ -71,17 +73,34 @@ class WeekdaysPicker extends StatelessWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: Weekday.values
-              .map((e) => _buildValue(context, e))
-              .interleaved((_) => _weekdayMinSpace)
-              .toList(),
+  Widget _buildLayout(BuildContext context, BoxConstraints constraints) {
+    final width = constraints.maxWidth;
+    final child = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: Weekday.values
+          .map((e) => _buildValue(context, e))
+          .interleaved((_) => _weekdayMinSpace)
+          .toList(),
+    );
+    final minRowWidth = (Weekday.values.length - 1) * _kWeekdayMinSep +
+        Weekday.values.length * _kWeekdaySize;
+    final rowWidth = max(minRowWidth, width);
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Padding(
+        padding: rowWidth == minRowWidth
+            ? const EdgeInsets.all(1.0)
+            : EdgeInsets.zero,
+        child: SizedBox(
+          width: rowWidth,
+          child: child,
         ),
-      );
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(builder: _buildLayout);
 }
 
 extension _Interleaved<T> on Iterable<T> {
