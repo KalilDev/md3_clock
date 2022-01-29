@@ -135,7 +135,7 @@ class _ListTile extends StatelessWidget {
     this.isActive,
     this.contentPadding,
     this.onTap,
-    this.dense = true,
+    this.dense = false,
   }) : super(key: key);
   final Widget? leading;
   final Widget title;
