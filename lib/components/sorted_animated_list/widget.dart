@@ -54,15 +54,33 @@ class _SortedAnimatedListState<T> extends State<SortedAnimatedList<T>> {
     );
   }
 
-  void _onRemoveItem(IndexAndValue<T> info) {
-    final builder = widget.removingItemBuilder ?? widget.itemBuilder;
+  void _onRemoveItem(IsMoveStepAndValue<IndexAndValue<T>> info) {
+    final targetInfo = IsMoveStepAndValue(info.isMoveStep, info.value.value);
+    void onDiscard() {
+      if (info.isMoveStep) {
+        return;
+      }
+      controller!.onDiscardItem(info.value.value);
+    }
+
+    final baseBuilder = widget.removingItemBuilder ?? widget.itemBuilder;
+
+    Widget itemBuilder(
+      BuildContext context,
+      Animation<double> animation,
+    ) =>
+        _ItemDiscardNotifier(
+          onDiscard: onDiscard,
+          animation: animation,
+          child: baseBuilder(
+            context,
+            info.value.value,
+            animation,
+          ),
+        );
     listKey.currentState!.removeItem(
-      info.index,
-      (context, animation) => builder(
-        context,
-        info.value,
-        animation,
-      ),
+      info.value.index,
+      itemBuilder,
       duration: widget.removalDuration,
     );
   }
@@ -86,7 +104,7 @@ class _SortedAnimatedListState<T> extends State<SortedAnimatedList<T>> {
     controller = newController;
     _connections = IDisposable.merge([
       newController.didInsertItem.map((e) => e.value).tap(_onInsertItem),
-      newController.didRemoveItem.map((e) => e.value).tap(_onRemoveItem),
+      newController.didRemoveItem.tap(_onRemoveItem),
     ]);
   }
 
@@ -116,4 +134,55 @@ class _SortedAnimatedListState<T> extends State<SortedAnimatedList<T>> {
           clipBehavior: widget.clipBehavior,
         ),
       );
+}
+
+class _ItemDiscardNotifier extends StatefulWidget {
+  _ItemDiscardNotifier({
+    required this.onDiscard,
+    required this.animation,
+    required this.child,
+  }) : super(key: ObjectKey(animation));
+  final VoidCallback onDiscard;
+  final Animation<Object?> animation;
+  final Widget child;
+
+  @override
+  __ItemDiscardNotifier createState() => __ItemDiscardNotifier();
+}
+
+class __ItemDiscardNotifier extends State<_ItemDiscardNotifier> {
+  @override
+  void initState() {
+    super.initState();
+    widget.animation.addStatusListener(_onStatus);
+  }
+
+  bool didDiscard = false;
+  void _onStatus(AnimationStatus status) {
+    if (status != AnimationStatus.dismissed || didDiscard) {
+      return;
+    }
+    didDiscard = true;
+    widget.onDiscard();
+  }
+
+  @override
+  void didUpdateWidget(_ItemDiscardNotifier oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.animation != widget.animation) {
+      throw StateError('invalid state');
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.animation.removeStatusListener(_onStatus);
+    if (!didDiscard) {
+      widget.onDiscard();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

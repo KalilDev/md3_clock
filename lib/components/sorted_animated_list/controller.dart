@@ -7,6 +7,7 @@ class SortedAnimatedListController<T> extends ControllerBase {
   late final ListValueNotifier<T> _values;
   final EventNotifier<IsMoveStepAndValue<IndexAndValue<T>>> _didRemoveItem =
       EventNotifier();
+  final EventNotifier<T> _didDiscardItem = EventNotifier();
   final EventNotifier<IsMoveStepAndValue<int>> _didInsertItem = EventNotifier();
   final int Function(T, T) _compare;
   SortedAnimatedListController.from(
@@ -18,8 +19,11 @@ class SortedAnimatedListController<T> extends ControllerBase {
   ValueListenable<UnmodifiableListView<T>> get values => _values.view();
   ValueListenable<IsMoveStepAndValue<IndexAndValue<T>>> get didRemoveItem =>
       _didRemoveItem.viewNexts();
+  ValueListenable<T> get didDiscardItem => _didDiscardItem.viewNexts();
   ValueListenable<IsMoveStepAndValue<int>> get didInsertItem =>
       _didInsertItem.viewNexts();
+
+  void remove(T value) => _removeValue(value);
 
   void insert(T value) {
     // Sorted list linear scan for maybe finding the sorted target index.
@@ -48,9 +52,9 @@ class SortedAnimatedListController<T> extends ControllerBase {
     _insertValue(value, sortedItemIndex);
   }
 
-  void reSortValue(T value) {
+  bool reSortValue(T value) {
     if (_values.length == 1) {
-      return;
+      return false;
     }
 
     // Sorted list linear scan for maybe finding the current index, and finding
@@ -100,10 +104,15 @@ class SortedAnimatedListController<T> extends ControllerBase {
     isControllerSorted ??= currentItemIndex == sortedItemIndex;
 
     if (isControllerSorted) {
-      return;
+      return false;
     }
     _removeValue(value, true);
     _insertValue(value, sortedItemIndex, true);
+    return true;
+  }
+
+  void onDiscardItem(T discarded) {
+    _didDiscardItem.add(discarded);
   }
 
   void _removeValue(T value, [bool isPartOfMove = false]) {
