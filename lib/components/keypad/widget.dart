@@ -33,37 +33,39 @@ class _TimeKeypad extends StatelessWidget {
     required Widget child,
   }) =>
       Expanded(
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: MD3FloatingActionButton(
-            style: ButtonStyle(
-              shape: MaterialStateProperty.resolveWith(
-                (states) => states.contains(MaterialState.pressed)
-                    ? RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24))
-                    : null,
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: MD3FloatingActionButton(
+              style: ButtonStyle(
+                shape: MaterialStateProperty.resolveWith(
+                  (states) => states.contains(MaterialState.pressed)
+                      ? RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24))
+                      : null,
+                ),
+                padding: MaterialStateProperty.all(
+                  const EdgeInsets.all(2.0),
+                ),
+                textStyle: MaterialStateProperty.all(
+                  context.textTheme.headlineLarge,
+                ),
+                foregroundColor: MaterialStateProperty.all(
+                  fabColorScheme == MD3FABColorScheme.surface
+                      ? context.colorScheme.onSurface
+                      : null,
+                ),
+                elevation: MaterialStateProperty.all(
+                    fabColorScheme == MD3FABColorScheme.secondary ? 0.0 : null),
               ),
-              padding: MaterialStateProperty.all(
-                const EdgeInsets.all(2.0),
+              onLongPress: onLongPress,
+              fabColorScheme: fabColorScheme,
+              onPressed: onPressed,
+              isLowered: true,
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: child,
               ),
-              textStyle: MaterialStateProperty.all(
-                context.textTheme.headlineLarge,
-              ),
-              foregroundColor: MaterialStateProperty.all(
-                fabColorScheme == MD3FABColorScheme.surface
-                    ? context.colorScheme.onSurface
-                    : null,
-              ),
-              elevation: MaterialStateProperty.all(
-                  fabColorScheme == MD3FABColorScheme.secondary ? 0.0 : null),
-            ),
-            onLongPress: onLongPress,
-            fabColorScheme: fabColorScheme,
-            onPressed: onPressed,
-            isLowered: true,
-            child: FittedBox(
-              fit: BoxFit.contain,
-              child: child,
             ),
           ),
         ),
