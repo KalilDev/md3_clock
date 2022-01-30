@@ -1,14 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/model/date.dart';
+import 'package:md3_clock/utils/layout.dart';
 import 'package:md3_clock/widgets/duration.dart';
 import 'package:md3_clock/widgets/weekday_picker.dart';
 import 'package:value_notifier/value_notifier.dart';
 import '../../model/weekday.dart';
 import 'controller.dart';
 
+enum CurrentTimeLayout {
+  compactStartAligned,
+  expandedCenterAligned,
+}
+
 class CurrentTime extends StatelessWidget {
   const CurrentTime({
+    Key? key,
+    required this.controller,
+    this.layout = CurrentTimeLayout.compactStartAligned,
+  }) : super(key: key);
+  final CurrentTimeControler controller;
+  final CurrentTimeLayout layout;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (layout) {
+      case CurrentTimeLayout.compactStartAligned:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _DigitalClock(controller: controller),
+            _DateAndNextAlarm(controller: controller),
+          ],
+        );
+      case CurrentTimeLayout.expandedCenterAligned:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Spacer(),
+            _DigitalClock(controller: controller),
+            const Spacer(),
+            _DateAndNextAlarm(controller: controller),
+          ],
+        );
+    }
+  }
+}
+
+class _DateAndNextAlarm extends StatelessWidget {
+  const _DateAndNextAlarm({
     Key? key,
     required this.controller,
   }) : super(key: key);
@@ -34,31 +74,55 @@ class CurrentTime extends StatelessWidget {
       );
 
   @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          controller.currentTime.build(
-            builder: (context, time, _) => TimeOfDayWidget(
-              timeOfDay: time,
-            ),
-          ),
-          DefaultTextStyle(
-            style: context.textTheme.bodyMedium.copyWith(
-              color: context.colorScheme.onSurface,
-              fontWeight: FontWeight.w400,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _currentWeekday(context),
-                const Text(', '),
-                _currentDate(context),
-                _maybeNextAlarm(context),
-              ],
-            ),
-          )
-        ],
+  Widget build(BuildContext context) => DefaultTextStyle(
+        style: context.textTheme.bodyMedium.copyWith(
+          color: context.colorScheme.onSurface,
+          fontWeight: FontWeight.w400,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _currentWeekday(context),
+            const Text(', '),
+            _currentDate(context),
+            _maybeNextAlarm(context),
+          ],
+        ),
       );
+}
+
+class _DigitalClock extends StatelessWidget {
+  const _DigitalClock({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+  final CurrentTimeControler controller;
+
+  @override
+  Widget build(BuildContext context) {
+    TextStyle? numberStyle;
+    TextStyle? separatorStyle;
+    if (isHuge(context)) {
+      const adaptativeStyle = MD3TextStyle(
+        base: TextStyle(fontWeight: FontWeight.w400),
+        scale: MD3TextAdaptativeScale.single(
+          MD3TextAdaptativeProperties(
+            size: 128,
+            height: 194,
+          ),
+        ),
+      );
+      numberStyle = adaptativeStyle.resolveTo(context.deviceType);
+      separatorStyle = numberStyle;
+    }
+    return controller.currentTime.build(
+      builder: (context, time, _) => TimeOfDayWidget(
+        timeOfDay: time,
+        numberStyle: numberStyle,
+        separatorStyle: separatorStyle,
+      ),
+    );
+  }
 }
 
 const _kNextAlarmSeparatorWidth = 4.0;
