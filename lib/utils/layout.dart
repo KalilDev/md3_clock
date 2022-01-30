@@ -6,3 +6,5 @@ bool isLandscape(BuildContext context) =>
     MediaQuery.of(context).orientation == Orientation.landscape;
 bool isTiny(BuildContext context) =>
     MediaQuery.of(context).size.shortestSide < 360;
+bool isHuge(BuildContext context) =>
+    MediaQuery.of(context).size.shortestSide > 540;
