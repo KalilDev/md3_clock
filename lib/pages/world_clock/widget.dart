@@ -109,19 +109,24 @@ class _CityCard extends StatelessWidget {
       );
 
   @override
-  Widget build(BuildContext context) => _DismissibleFilledCard(
-        key: ObjectKey(model.city),
-        onDismissed: onDelete,
-        child: Container(
-          height: kHeight,
-          color: context.colorScheme.errorContainer,
-          child: _buildInnerCard(context),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: CardStyle.kMaxCardSpacing / 4,
         ),
-        background: const _DimissedCityCard(
-          startToEnd: true,
-        ),
-        secondaryBackground: const _DimissedCityCard(
-          startToEnd: false,
+        child: _DismissibleFilledCard(
+          key: ObjectKey(model.city),
+          onDismissed: onDelete,
+          child: Container(
+            height: kHeight,
+            color: context.colorScheme.errorContainer,
+            child: _buildInnerCard(context),
+          ),
+          background: const _DimissedCityCard(
+            startToEnd: true,
+          ),
+          secondaryBackground: const _DimissedCityCard(
+            startToEnd: false,
+          ),
         ),
       );
 }
@@ -196,10 +201,14 @@ class ClockPage extends StatelessWidget {
                 ),
               ),
             ),
-            SliverSortedAnimatedList<CityViewModel>(
-              controller: controller.clocksList,
-              itemBuilder: _buildClockCard,
-              removalDuration: Duration.zero,
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(
+                  vertical: CardStyle.kMaxCardSpacing / 2),
+              sliver: SliverSortedAnimatedList<CityViewModel>(
+                controller: controller.clocksList,
+                itemBuilder: _buildClockCard,
+                removalDuration: Duration.zero,
+              ),
             ),
             SliverPadding(padding: FabSafeArea.fabPaddingFor(context)),
           ],
@@ -221,9 +230,11 @@ class ClockPageFab extends StatelessWidget {
       showMD3Search<City>(
         context: context,
         delegate: CitySearchDelegate(),
-      ).then((city) {
-        print('todo');
-      });
+      ).then((city) => city == null
+          ? null
+          : controller.onAddCity(
+              city,
+            ));
     }
 
     if (useLargeFab(context)) {
