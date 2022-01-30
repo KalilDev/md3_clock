@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/components/current_time/controller.dart';
@@ -5,6 +6,7 @@ import 'package:md3_clock/components/current_time/widget.dart';
 import 'package:md3_clock/components/sorted_animated_list/widget.dart';
 import 'package:md3_clock/model/duration_components.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
+import 'package:md3_clock/utils/layout.dart';
 import 'package:md3_clock/utils/theme.dart';
 import 'package:md3_clock/widgets/duration.dart';
 import 'package:md3_clock/widgets/fab_safe_area.dart';
@@ -131,11 +133,9 @@ class _CityCard extends StatelessWidget {
       );
 }
 
-class ClockPage extends StatelessWidget {
-  const ClockPage({
-    Key? key,
-    required this.controller,
-  }) : super(key: key);
+class _ClockPortraitBody extends StatelessWidget {
+  const _ClockPortraitBody({Key? key, required this.controller})
+      : super(key: key);
   final ClockPageController controller;
 
   void _onItemDelete(CityViewModel city) {
@@ -155,64 +155,123 @@ class ClockPage extends StatelessWidget {
         ),
       );
 
+  @override
+  Widget build(BuildContext context) => CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: CurrentTime(
+                  controller: controller.currentTimeController,
+                ),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(
+                vertical: CardStyle.kMaxCardSpacing / 2),
+            sliver: SliverSortedAnimatedList<CityViewModel>(
+              controller: controller.clocksList,
+              itemBuilder: _buildClockCard,
+              removalDuration: Duration.zero,
+            ),
+          ),
+          SliverPadding(padding: FabSafeArea.fabPaddingFor(context)),
+        ],
+      );
+}
+
+class _ClockLandscapeBody extends StatelessWidget {
+  const _ClockLandscapeBody({Key? key, required this.controller})
+      : super(key: key);
+  final ClockPageController controller;
+  void _onItemDelete(CityViewModel city) {
+    controller.onRemoveCity(city);
+  }
+
+  Widget _buildClockCard(
+    BuildContext context,
+    CityViewModel cityClock,
+    Animation<double> animation,
+  ) =>
+      _ListEntranceTransition(
+        animation: animation,
+        child: _CityCard(
+          model: cityClock,
+          onDelete: (_) => _onItemDelete(cityClock),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) => Row(
+        children: [
+          Expanded(
+            flex: 4,
+            child: CurrentTime(
+              controller: controller.currentTimeController,
+              layout: CurrentTimeLayout.expandedCenterAligned,
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: SortedAnimatedList(
+              padding: const EdgeInsets.symmetric(
+                  vertical: CardStyle.kMaxCardSpacing / 2),
+              controller: controller.clocksList,
+              itemBuilder: _buildClockCard,
+              removalDuration: Duration.zero,
+            ),
+          ),
+        ],
+      );
+}
+
+class ClockPage extends StatelessWidget {
+  const ClockPage({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+  final ClockPageController controller;
+
   Widget _cardTheme(
     BuildContext context, {
     required Widget child,
-  }) {
-    return FilledCardTheme(
-      data: FilledCardThemeData(
-        style: CardStyle(
-            clipBehavior: Clip.antiAlias,
-            padding: MaterialStateProperty.all(
-              const EdgeInsets.symmetric(
-                horizontal: 16,
-              ),
-            ),
-            backgroundColor: MD3ElevationTintableColor(
-              context.colorScheme.surface,
-              MD3ElevationLevel.surfaceTint(context.colorScheme),
-              MaterialStateProperty.all(context.elevation.level2),
-            ),
-            shape: MaterialStateProperty.all(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(
-                  26,
+  }) =>
+      FilledCardTheme(
+        data: FilledCardThemeData(
+          style: CardStyle(
+              clipBehavior: Clip.antiAlias,
+              padding: MaterialStateProperty.all(
+                const EdgeInsets.symmetric(
+                  horizontal: 16,
                 ),
               ),
-            )),
-      ),
-      child: child,
-    );
-  }
+              backgroundColor: MD3ElevationTintableColor(
+                context.colorScheme.surface,
+                MD3ElevationLevel.surfaceTint(context.colorScheme),
+                MaterialStateProperty.all(context.elevation.level2),
+              ),
+              shape: MaterialStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    26,
+                  ),
+                ),
+              )),
+        ),
+        child: child,
+      );
+
+  Widget _buildBody(BuildContext context) => isPortrait(context)
+      ? _ClockPortraitBody(controller: controller)
+      : _ClockLandscapeBody(controller: controller);
 
   @override
   Widget build(BuildContext context) => _cardTheme(
         context,
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24.0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: CurrentTime(
-                    controller: controller.currentTimeController,
-                  ),
-                ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                  vertical: CardStyle.kMaxCardSpacing / 2),
-              sliver: SliverSortedAnimatedList<CityViewModel>(
-                controller: controller.clocksList,
-                itemBuilder: _buildClockCard,
-                removalDuration: Duration.zero,
-              ),
-            ),
-            SliverPadding(padding: FabSafeArea.fabPaddingFor(context)),
-          ],
-        ),
+        child: _buildBody(context),
       );
 }
 
