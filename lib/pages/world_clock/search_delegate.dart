@@ -5,8 +5,11 @@ import 'package:value_notifier/value_notifier.dart';
 import '../../model/city.dart';
 import '../../widgets/search.dart';
 import 'controller.dart';
+import 'search_delegate_controller.dart';
 
 class CitySearchDelegate extends MD3SearchDelegate<City> {
+  final WorldClockSearchController controller =
+      WorldClockSearchController('', DummyQueryFetcher())..init();
   String get searchFieldLabel => 'Pesquisar uma cidade';
   @override
   List<Widget>? buildActions(BuildContext context) => [
@@ -18,16 +21,12 @@ class CitySearchDelegate extends MD3SearchDelegate<City> {
       ];
   @override
   set query(String value) {
+    controller.setQuery(value);
     super.query = value;
-    if (value.isEmpty) {
-      return;
-    }
   }
 
   @override
   Widget? buildLeading(BuildContext context) => const BackButton();
-
-  ValueNotifier<List<City>> queryResults = ValueNotifier([]);
 
   Widget _buildCity(BuildContext context, City city) => ListTile(
         title: Text(city.titleString),
@@ -36,29 +35,9 @@ class CitySearchDelegate extends MD3SearchDelegate<City> {
       );
 
   @override
-  Widget buildResults(BuildContext context) => queryResults.buildView(
+  Widget buildResults(BuildContext context) => controller.queryResult.buildView(
         builder: (context, results, _) => results.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.search,
-                      size: 124,
-                      color:
-                          context.colorScheme.onSurfaceVariant.withOpacity(0.6),
-                    ),
-                    Text(
-                      'Pesquisar uma cidade',
-                      style: context.textTheme.bodyLarge.copyWith(
-                        color: context.colorScheme.onSurfaceVariant
-                            .withOpacity(0.6),
-                        fontWeight: FontWeight.w400,
-                      ),
-                    )
-                  ],
-                ),
-              )
+            ? _EmptySearchBody(controller: controller)
             : ListView.builder(
                 itemBuilder: (context, i) => _buildCity(context, results[i]),
                 itemCount: results.length,
@@ -73,8 +52,53 @@ class CitySearchDelegate extends MD3SearchDelegate<City> {
       MD3SmallAppBar(
         leading: buildLeading(context),
         actions: buildActions(context),
-        title: textField,
+        title: TextField(
+          onChanged: (e) => controller.setQuery(e),
+        ),
         bottom: _BottomDecoration(),
+      );
+}
+
+class _EmptySearchBody extends StatelessWidget {
+  const _EmptySearchBody({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+  final WorldClockSearchController controller;
+
+  @override
+  Widget build(BuildContext context) => Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: controller.isLoading.buildView(
+              builder: (context, isLoading, _) =>
+                  isLoading ? LinearProgressIndicator() : SizedBox(),
+            ),
+          ),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.search,
+                  size: 124,
+                  color: context.colorScheme.onSurfaceVariant.withOpacity(0.6),
+                ),
+                Text(
+                  'Pesquisar uma cidade',
+                  style: context.textTheme.bodyLarge.copyWith(
+                    color:
+                        context.colorScheme.onSurfaceVariant.withOpacity(0.6),
+                    fontWeight: FontWeight.w400,
+                  ),
+                )
+              ],
+            ),
+          ),
+        ],
       );
 }
 
