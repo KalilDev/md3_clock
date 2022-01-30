@@ -491,7 +491,6 @@ class _SearchPageState<T> extends State<_SearchPage<T>> {
     }
 
     final textFieldStyle = context.textTheme.bodyLarge.copyWith(
-      fontWeight: FontWeight.w400,
       color: context.colorScheme.onSurface,
     );
 

@@ -77,7 +77,6 @@ class _DateAndNextAlarm extends StatelessWidget {
   Widget build(BuildContext context) => DefaultTextStyle(
         style: context.textTheme.bodyMedium.copyWith(
           color: context.colorScheme.onSurface,
-          fontWeight: FontWeight.w400,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -104,7 +103,7 @@ class _DigitalClock extends StatelessWidget {
     TextStyle? separatorStyle;
     if (isHuge(context)) {
       const adaptativeStyle = MD3TextStyle(
-        base: TextStyle(fontWeight: FontWeight.w400),
+        base: TextStyle(),
         scale: MD3TextAdaptativeScale.single(
           MD3TextAdaptativeProperties(
             size: 128,

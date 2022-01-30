@@ -77,14 +77,12 @@ class _CityCard extends StatelessWidget {
             model.city.name,
             style: context.textTheme.bodyLarge.copyWith(
               color: context.colorScheme.onSurface,
-              fontWeight: FontWeight.w400,
             ),
           ),
           Text(
             _offsetToString(model.timeZoneOffsetLocal),
             style: context.textTheme.bodyMedium.copyWith(
               color: context.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w400,
             ),
           )
         ],

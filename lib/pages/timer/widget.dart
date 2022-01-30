@@ -118,8 +118,7 @@ class _TimerSectionPage extends StatelessWidget {
                   controller: controller,
                   style: ButtonStyle(
                     textStyle: MaterialStateProperty.all(
-                      context.textTheme.labelLarge
-                          .copyWith(fontWeight: FontWeight.w400),
+                      context.textTheme.labelLarge,
                     ),
                   ),
                 ),
@@ -297,8 +296,7 @@ class _TimerClockRingBody extends StatelessWidget {
             style: ButtonStyle(
               fixedSize: MaterialStateProperty.all(const Size.fromHeight(32)),
               textStyle: MaterialStateProperty.all(
-                context.textTheme.labelMedium
-                    .copyWith(fontWeight: FontWeight.w400),
+                context.textTheme.labelMedium,
               ),
             ),
           ),

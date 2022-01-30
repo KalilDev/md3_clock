@@ -29,7 +29,6 @@ class _LapTextStyle extends StatelessWidget {
   Widget build(BuildContext context) => DefaultTextStyle.merge(
         style: context.textTheme.bodyMedium.copyWith(
           color: context.colorScheme.onSurface,
-          fontWeight: FontWeight.w300,
         ),
         child: child,
       );

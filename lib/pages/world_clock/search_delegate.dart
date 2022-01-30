@@ -92,7 +92,6 @@ class _EmptySearchBody extends StatelessWidget {
                   style: context.textTheme.bodyLarge.copyWith(
                     color:
                         context.colorScheme.onSurfaceVariant.withOpacity(0.6),
-                    fontWeight: FontWeight.w400,
                   ),
                 )
               ],
