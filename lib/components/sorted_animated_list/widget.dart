@@ -5,7 +5,7 @@ import 'controller.dart';
 
 const Duration _kDuration = Duration(milliseconds: 300);
 
-class SortedAnimatedList<T> extends StatefulWidget {
+class SortedAnimatedList<T> extends StatelessWidget {
   const SortedAnimatedList({
     Key? key,
     required this.controller,
@@ -39,13 +39,58 @@ class SortedAnimatedList<T> extends StatefulWidget {
   final Duration removalDuration;
 
   @override
-  State<SortedAnimatedList<T>> createState() => _SortedAnimatedListState<T>();
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      scrollDirection: scrollDirection,
+      reverse: reverse,
+      controller: scrollController,
+      primary: primary,
+      physics: physics,
+      shrinkWrap: shrinkWrap,
+      clipBehavior: clipBehavior,
+      slivers: <Widget>[
+        SliverPadding(
+          padding: padding ?? EdgeInsets.zero,
+          sliver: SliverSortedAnimatedList(
+            controller: controller,
+            itemBuilder: itemBuilder,
+            removingItemBuilder: removingItemBuilder,
+            insertionDuration: insertionDuration,
+            removalDuration: removalDuration,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-class _SortedAnimatedListState<T> extends State<SortedAnimatedList<T>> {
+class SliverSortedAnimatedList<T> extends StatefulWidget {
+  const SliverSortedAnimatedList({
+    Key? key,
+    required this.controller,
+    required this.itemBuilder,
+    this.removingItemBuilder,
+    this.insertionDuration = _kDuration,
+    this.removalDuration = _kDuration,
+  }) : super(key: key);
+
+  final SortedAnimatedListController<T> controller;
+  final Widget Function(BuildContext, T, Animation<double>) itemBuilder;
+  final Widget Function(BuildContext, T, Animation<double>)?
+      removingItemBuilder;
+  final Duration insertionDuration;
+  final Duration removalDuration;
+
+  @override
+  State<SliverSortedAnimatedList<T>> createState() =>
+      _SliverSortedAnimatedListState<T>();
+}
+
+class _SliverSortedAnimatedListState<T>
+    extends State<SliverSortedAnimatedList<T>> {
   IDisposable _connections = IDisposable.merge([]);
   SortedAnimatedListController<T>? controller;
-  final GlobalKey<AnimatedListState> listKey = GlobalKey();
+  final GlobalKey<SliverAnimatedListState> listKey = GlobalKey();
 
   void _onInsertItem(int index) {
     listKey.currentState!.insertItem(
@@ -55,7 +100,6 @@ class _SortedAnimatedListState<T> extends State<SortedAnimatedList<T>> {
   }
 
   void _onRemoveItem(IsMoveStepAndValue<IndexAndValue<T>> info) {
-    final targetInfo = IsMoveStepAndValue(info.isMoveStep, info.value.value);
     void onDiscard() {
       if (info.isMoveStep) {
         return;
@@ -86,7 +130,7 @@ class _SortedAnimatedListState<T> extends State<SortedAnimatedList<T>> {
   }
 
   @override
-  void didUpdateWidget(SortedAnimatedList<T> oldWidget) {
+  void didUpdateWidget(SliverSortedAnimatedList<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     _updateController(widget.controller);
   }
@@ -116,7 +160,7 @@ class _SortedAnimatedListState<T> extends State<SortedAnimatedList<T>> {
 
   @override
   Widget build(BuildContext context) => controller!.values.build(
-        builder: (context, values, _) => AnimatedList(
+        builder: (context, values, _) => SliverAnimatedList(
           key: listKey,
           itemBuilder: (context, i, animation) => widget.itemBuilder(
             context,
@@ -124,14 +168,6 @@ class _SortedAnimatedListState<T> extends State<SortedAnimatedList<T>> {
             animation,
           ),
           initialItemCount: values.length,
-          scrollDirection: widget.scrollDirection,
-          reverse: widget.reverse,
-          controller: widget.scrollController,
-          primary: widget.primary,
-          physics: widget.physics,
-          shrinkWrap: widget.shrinkWrap,
-          padding: widget.padding,
-          clipBehavior: widget.clipBehavior,
         ),
       );
 }

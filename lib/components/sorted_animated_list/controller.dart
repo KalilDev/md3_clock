@@ -111,6 +111,11 @@ class SortedAnimatedListController<T> extends ControllerBase {
     return true;
   }
 
+  // Mutate the values in the list PRESERVING THE SORT ORDER!!
+  void mutate(void Function(List<T>) fn) {
+    _values.mutate(fn);
+  }
+
   void onDiscardItem(T discarded) {
     _didDiscardItem.add(discarded);
   }
