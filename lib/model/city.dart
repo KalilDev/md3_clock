@@ -5,7 +5,7 @@ class City {
 
   final Duration timeZoneOffset;
 
-  City(
+  const City(
     this.name,
     this.stateName,
     this.countryName,
