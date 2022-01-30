@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
+import 'package:md3_clock/utils/utils.dart';
 
 import '../model/weekday.dart';
 
@@ -103,21 +104,7 @@ class WeekdaysPicker extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(builder: _buildLayout);
 }
 
-extension _Interleaved<T> on Iterable<T> {
-  Iterable<T> interleaved(T Function(int) interleaveBuilder) sync* {
-    int i = -1;
-    for (final e in this) {
-      if (i == -1) {
-        i++;
-      } else {
-        yield interleaveBuilder(i++);
-      }
-      yield e;
-    }
-  }
-}
-
-extension on Weekday {
+extension WeekdayViewE on Weekday {
   String get text {
     switch (this) {
       case Weekday.saturday:
