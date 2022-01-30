@@ -123,6 +123,13 @@ packages:
       url: "http://localhost:4000"
     source: hosted
     version: "0.0.27"
+  md3_clock_typography:
+    dependency: "direct main"
+    description:
+      path: md3_clock_typography
+      relative: true
+    source: path
+    version: "0.0.1"
   meta:
     dependency: transitive
     description:

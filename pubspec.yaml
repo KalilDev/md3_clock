@@ -38,6 +38,8 @@ dependencies:
   animations:
   value_notifier:
     path: ../value_notifier
+  md3_clock_typography:
+    path: md3_clock_typography
 
 dev_dependencies:
   flutter_test:

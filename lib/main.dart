@@ -6,7 +6,7 @@ import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/pages/home/home.dart';
 import 'package:value_notifier/value_notifier.dart';
 import 'package:value_notifier/src/frame.dart';
-
+import 'typography/typography.dart';
 import 'utils/theme.dart';
 
 void main() {
@@ -31,6 +31,7 @@ class MyApp extends StatelessWidget {
     return MD3Themes(
       targetPlatform: TargetPlatform.android,
       monetThemeForFallbackPalette: monetTheme,
+      textTheme: md3ClockTypography,
       usePlatformPalette: false,
       builder: (context, light, dark) => MaterialApp(
         title: 'Relógio',
