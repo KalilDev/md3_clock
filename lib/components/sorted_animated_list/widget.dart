@@ -122,6 +122,11 @@ class _SliverSortedAnimatedListState<T>
             animation,
           ),
         );
+    if (widget.removalDuration == Duration.zero) {
+      // The animation will never run, and the item will not be discarded by
+      // [_ItemDiscardNotifier].
+      onDiscard();
+    }
     listKey.currentState!.removeItem(
       info.value.index,
       itemBuilder,
