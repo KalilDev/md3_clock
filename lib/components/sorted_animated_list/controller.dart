@@ -111,7 +111,9 @@ class SortedAnimatedListController<T> extends ControllerBase {
     return true;
   }
 
-  // Mutate the values in the list PRESERVING THE SORT ORDER!!
+  // Mutate the values in the list PRESERVING THE SORT ORDER AND THE ITEM COUNT!
+  // Adding, removing and changing the values so they are not sorted anymore is
+  // UB!!
   void mutate(void Function(List<T>) fn) {
     _values.mutate(fn);
   }
@@ -122,16 +124,20 @@ class SortedAnimatedListController<T> extends ControllerBase {
 
   void _removeValue(T value, [bool isPartOfMove = false]) {
     final index = _values.indexOf(value);
-    _values.removeAt(index);
+    // Add the event first so that the AnimatedList may be modified before the
+    // AnimatedBuilder triggering
     _didRemoveItem.add(IsMoveStepAndValue(
       isPartOfMove,
       IndexAndValue(index, value),
     ));
+    _values.removeAt(index);
   }
 
   void _insertValue(T controller, int index, [bool isPartOfMove = false]) {
-    _values.insert(index, controller);
+    // Add the event first so that the AnimatedList may be modified before the
+    // AnimatedBuilder triggering
     _didInsertItem.add(IsMoveStepAndValue(isPartOfMove, index));
+    _values.insert(index, controller);
   }
 
   void init() {
