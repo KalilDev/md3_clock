@@ -326,9 +326,7 @@ class _StopwatchDurationText extends StatelessWidget {
         children: [
           DurationWidget(
             duration: duration.toDuration(),
-            numberStyle: context.textTheme.displayLarge,
-            separatorStyle: context.textTheme.displayMedium,
-            padSeconds: true,
+            alwaysPadSeconds: true,
           ),
           Text(
             (duration.miliseconds ~/ 10)

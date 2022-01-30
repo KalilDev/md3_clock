@@ -276,8 +276,6 @@ class _TimerDurationText extends StatelessWidget {
         child: controller.remainingTimerDuration.build(
           builder: (context, duration, _) => DurationWidget(
             duration: duration,
-            numberStyle: context.textTheme.displayLarge,
-            separatorStyle: context.textTheme.displayMedium,
           ),
         ),
       );
