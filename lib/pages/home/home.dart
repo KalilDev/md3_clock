@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
+import 'package:md3_clock/components/current_time/controller.dart';
+import 'package:md3_clock/model/city.dart';
+import 'package:md3_clock/model/weekday.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
 import 'package:md3_clock/utils/chrono.dart';
 import 'package:md3_clock/widgets/switcher.dart';
@@ -47,9 +50,27 @@ class ClockHomePageController extends IDisposableBase {
           );
 
   final alarmPageController = AlarmPageController();
-  final clockPageController = ClockPageController();
+  late final clockPageController = ClockPageController(
+    initialCities: [
+      City(
+        'Texas City',
+        'TX',
+        'EUA',
+        const Duration(hours: -6),
+      ),
+    ],
+    vsync: _vsync,
+    nextAlarm: NextAlarmViewModel(
+      Weekday.sunday,
+      const TimeOfDay(
+        hour: 00,
+        minute: 00,
+      ),
+    ),
+  );
   late final timerPageController = TimerPageController(vsync: _vsync);
-  late final stopwatchPageController = StopwatchPageController(_vsync.createTicker());
+  late final stopwatchPageController =
+      StopwatchPageController(_vsync.createTicker());
   late final List<_ClockPageSpec> pages = [
     _ClockPageSpec(
       item: NavigationItem(labelText: 'Alarme', icon: const Icon(Icons.alarm)),
@@ -101,7 +122,8 @@ class ClockHomePage extends StatefulWidget {
   State<ClockHomePage> createState() => _ClockHomePageState();
 }
 
-class _ClockHomePageState extends State<ClockHomePage> with SingleTickerProviderStateMixin {
+class _ClockHomePageState extends State<ClockHomePage>
+    with SingleTickerProviderStateMixin {
   late final vsync = FlutterTickerFactory(vsync: this);
   late final controller = ClockHomePageController(vsync);
   late final _fabNotifier =
