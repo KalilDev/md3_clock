@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:value_notifier/value_notifier.dart';
@@ -49,7 +50,7 @@ class SortedAnimatedListController<T> extends ControllerBase {
       // target position is the end of the list.
       sortedItemIndex = _values.length - 1;
     }
-    _insertValue(value, sortedItemIndex);
+    _insertValue(value, sortedItemIndex.clamp(0, max(0, _values.length - 1)));
   }
 
   bool reSortValue(T value) {
@@ -107,7 +108,7 @@ class SortedAnimatedListController<T> extends ControllerBase {
       return false;
     }
     _removeValue(value, true);
-    _insertValue(value, sortedItemIndex, true);
+    _insertValue(value, sortedItemIndex.clamp(0, max(0, _values.length - 1)), true);
     return true;
   }
 
