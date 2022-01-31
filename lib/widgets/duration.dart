@@ -17,6 +17,35 @@ class DurationWidget extends StatelessWidget {
   final TextStyle? separatorStyle;
   final bool alwaysPadSeconds;
 
+  static TextStyle defaultStyleFor(BuildContext context) =>
+      TimeComponentsWidget.defaultStyleFor(context);
+  static TextSpan spanFor({
+    required Duration duration,
+    required TextStyle style,
+    bool alwaysPadSeconds = false,
+  }) {
+    final time = DurationComponents.fromDuration(duration);
+    final writeHours = time.hours > 0;
+    final writeMinutes = time.minutes > 0 || writeHours;
+
+    final timeComponents = [
+      if (writeHours) time.hours,
+      if (writeMinutes) time.minutes,
+      time.seconds,
+    ];
+    final shouldPad = [
+      if (writeHours) true,
+      if (writeMinutes) writeHours,
+      alwaysPadSeconds || writeMinutes,
+    ];
+
+    return TimeComponentsWidget.spanFor(
+      components: timeComponents,
+      padComponent: shouldPad,
+      style: style,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final time = DurationComponents.fromDuration(duration);
@@ -91,42 +120,42 @@ class TimeComponentsWidget extends StatelessWidget {
   static String _valueToPaddedString(int value) =>
       value.toString().padLeft(2, '0');
 
-  Widget _digits(
+  static String _digits(
     int digits,
     bool pad,
-    TextStyle style,
   ) =>
-      Text(
-        pad ? _valueToPaddedString(digits) : digits.toString(),
-        style: style,
-      );
-  Widget _separator(TextStyle style) => Text(
-        ':',
-        style: style,
-      );
+      pad ? _valueToPaddedString(digits) : digits.toString();
+  static const _kSeparator = ':';
 
-  @override
-  Widget build(BuildContext context) {
-    final numberStyle = this.numberStyle ?? context.textTheme.displayLarge;
-    final separatorStyle =
-        this.separatorStyle ?? context.textTheme.displayMedium;
-    final separator = _separator(separatorStyle);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: Iterable.generate(
+  static TextStyle defaultStyleFor(BuildContext context) =>
+      context.textTheme.displayLarge;
+  static TextSpan spanFor({
+    required List<int> components,
+    required List<bool> padComponent,
+    required TextStyle style,
+  }) {
+    return TextSpan(
+      style: style,
+      text: Iterable.generate(
         components.length,
         (i) => _digits(
           components[i],
           padComponent[i],
-          numberStyle,
         ),
       )
           .interleaved(
-            (_) => separator,
+            (_) => _kSeparator,
           )
-          .toList(),
+          .join(),
     );
   }
+
+  @override
+  Widget build(BuildContext context) => Text.rich(
+        spanFor(
+          components: components,
+          padComponent: padComponent,
+          style: numberStyle ?? defaultStyleFor(context),
+        ),
+      );
 }

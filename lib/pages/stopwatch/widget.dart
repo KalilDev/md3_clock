@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/components/fab_group/controller.dart';
 import 'package:md3_clock/components/fab_group/widget.dart';
@@ -319,22 +320,25 @@ class _StopwatchDurationText extends StatelessWidget {
         ),
       );
 
-  Column _body(BuildContext context, DurationComponents duration) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          DurationWidget(
-            duration: duration.toDuration(),
-            alwaysPadSeconds: true,
-          ),
-          Text(
-            (duration.miliseconds ~/ 10)
-                .clamp(0, 99)
-                .toString()
-                .padLeft(2, '0'),
-            style: context.textTheme.displayMedium,
-          )
-        ],
+  Widget _body(BuildContext context, DurationComponents duration) => Text.rich(
+        TextSpan(
+          children: [
+            DurationWidget.spanFor(
+              duration: duration.toDuration(),
+              alwaysPadSeconds: true,
+              style: DurationWidget.defaultStyleFor(context),
+            ),
+            TextSpan(text: '\n'),
+            TextSpan(
+              text: (duration.miliseconds ~/ 10)
+                  .clamp(0, 99)
+                  .toString()
+                  .padLeft(2, '0'),
+              style: context.textTheme.displayMedium,
+            )
+          ],
+        ),
+        textAlign: TextAlign.end,
       );
 }
 
