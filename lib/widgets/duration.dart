@@ -149,13 +149,46 @@ class TimeComponentsWidget extends StatelessWidget {
           .join(),
     );
   }
+}
+
+class NumberText extends StatelessWidget {
+  const NumberText(
+    this.number, {
+    Key? key,
+    this.style,
+  }) : super(key: key);
+  final String number;
+  final TextStyle? style;
+
+  static String _referenceDigits(
+    String digits,
+  ) {
+    final length = digits.length;
+    return '0' * length;
+  }
+
+  static const _kDigits = {
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+  };
 
   @override
-  Widget build(BuildContext context) => Text.rich(
-        spanFor(
-          components: components,
-          padComponent: padComponent,
-          style: numberStyle ?? defaultStyleFor(context),
-        ),
-      );
+  Widget build(BuildContext context) {
+    var text = number.toString();
+    final referenceText = _referenceDigits(text);
+    return PrototypeText(
+      reference: referenceText,
+      target: text,
+      initialCharacterSet: _kDigits,
+      style: style,
+    );
+  }
 }
