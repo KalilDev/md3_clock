@@ -93,7 +93,6 @@ class _CityCard extends StatelessWidget {
         child: TimeOfDayWidget(
           timeOfDay: model.currentOffsetTime,
           numberStyle: context.textTheme.displaySmall,
-          separatorStyle: context.textTheme.headlineLarge,
         ),
       );
 

@@ -100,7 +100,6 @@ class _DigitalClock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TextStyle? numberStyle;
-    TextStyle? separatorStyle;
     if (isHuge(context)) {
       const adaptativeStyle = MD3TextStyle(
         base: TextStyle(),
@@ -112,13 +111,11 @@ class _DigitalClock extends StatelessWidget {
         ),
       );
       numberStyle = adaptativeStyle.resolveTo(context.deviceType);
-      separatorStyle = numberStyle;
     }
     return controller.currentTime.build(
       builder: (context, time, _) => TimeOfDayWidget(
         timeOfDay: time,
         numberStyle: numberStyle,
-        separatorStyle: separatorStyle,
       ),
     );
   }
