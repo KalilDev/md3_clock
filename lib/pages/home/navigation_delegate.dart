@@ -21,13 +21,13 @@ class ClockNavigationDelegate extends MD3NavigationDelegate {
 
   static const kBodyMinimumMargin = MD3SizeClassProperty<double?>.every(
     compact: 16,
-    medium: null,
-    expanded: null,
+    medium: 16,
+    expanded: 16,
   );
   static const kBodyMaximumMargin = MD3SizeClassProperty<double?>.every(
     compact: 16,
-    medium: null,
-    expanded: null,
+    medium: 16,
+    expanded: 16,
   );
   MD3AdaptativeScaffoldSpec _build(
     BuildContext context,
@@ -47,7 +47,7 @@ class ClockNavigationDelegate extends MD3NavigationDelegate {
                 labelBehavior: useSmallAppBars
                     ? NavigationDestinationLabelBehavior.alwaysHide
                     : null,
-                height: useSmallAppBars ? 52 : 80,
+                height: useSmallAppBars ? 52 : 79,
                 backgroundColor: MD3ElevationTintableColor(
                   context.colorScheme.surface,
                   MD3ElevationLevel.surfaceTint(context.colorScheme),
