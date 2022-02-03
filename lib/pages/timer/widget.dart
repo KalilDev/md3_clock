@@ -235,7 +235,8 @@ class _ClockRingChildLayout extends StatelessWidget {
             child: durationText,
           ),
           Positioned(
-            bottom: 8 + 36,
+            // 56/*targetHeight*/ -4/*padding outside*/ -10 /*stroke width*/
+            bottom: 42,
             left: 0,
             right: 0,
             child: Row(
@@ -288,20 +289,28 @@ class _TimerClockRingBody extends StatelessWidget {
 
   final TimerSectionController controller;
   @override
-  Widget build(BuildContext context) => _ClockRing(
-        controller: controller,
-        child: _ClockRingChildLayout(
-          button: _TimerResetOrAddMinuteButton(
+  // either 2/3 or 360
+  Widget build(BuildContext context) => SizedBox(
+        width: MediaQuery.of(context).size.width * 2 / 3,
+        child: Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: _ClockRing(
             controller: controller,
-            style: ButtonStyle(
-              fixedSize: MaterialStateProperty.all(const Size.fromHeight(32)),
-              textStyle: MaterialStateProperty.all(
-                context.textTheme.labelMedium,
+            child: _ClockRingChildLayout(
+              button: _TimerResetOrAddMinuteButton(
+                controller: controller,
+                style: ButtonStyle(
+                  fixedSize:
+                      MaterialStateProperty.all(const Size.fromHeight(42)),
+                  textStyle: MaterialStateProperty.all(
+                    context.textTheme.labelMedium,
+                  ),
+                ),
+              ),
+              durationText: _TimerDurationText(
+                controller: controller,
               ),
             ),
-          ),
-          durationText: _TimerDurationText(
-            controller: controller,
           ),
         ),
       );
@@ -345,14 +354,20 @@ class TimerPage extends StatelessWidget {
   final TimerPageController controller;
 
   Widget _buildAddPage(BuildContext context) => FabSafeArea(
-        child: TimeKeypadAndVisor(
-          controller: controller.addSectionController.keypadController,
-          isLandscape:
-              MediaQuery.of(context).orientation == Orientation.landscape,
+        key: const ObjectKey(true),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: TimeKeypadAndVisor(
+            controller: controller.addSectionController.keypadController,
+            isLandscape:
+                MediaQuery.of(context).orientation == Orientation.landscape,
+          ),
         ),
       );
-  Widget _buildTimersView(BuildContext context) =>
-      _TimersView(controller: controller);
+  Widget _buildTimersView(BuildContext context) => _TimersView(
+        key: const ObjectKey(false),
+        controller: controller,
+      );
 
   @override
   Widget build(BuildContext context) => controller.showAddPage.buildView(
