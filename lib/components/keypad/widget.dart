@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
+import 'package:md3_clock/widgets/duration.dart';
 import 'package:value_notifier/value_notifier.dart';
 
 import 'controller.dart';
@@ -20,10 +21,12 @@ class _TimeKeypad extends StatelessWidget {
   final VoidCallback onClear;
   final bool isPortrait;
 
-  static const _kHorizontalSpacing = 36.0;
+  static const _kHorizontalSpacing = 24.0;
   static const _kVerticalSpacing = 4.0;
   Widget get _h => SizedBox(width: isPortrait ? _kHorizontalSpacing : 4.0);
   Widget get _v => SizedBox(height: isPortrait ? _kVerticalSpacing : 8.0);
+  Widget get _halfV =>
+      SizedBox(height: isPortrait ? _kVerticalSpacing / 2 : 8.0 / 2);
 
   Widget _button(
     BuildContext context, {
@@ -98,6 +101,7 @@ class _TimeKeypad extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          _halfV,
           _row(
             [_d(context, 1), _h, _d(context, 2), _h, _d(context, 3)],
           ),
@@ -113,6 +117,7 @@ class _TimeKeypad extends StatelessWidget {
           _row(
             [_zz(context), _h, _d(context, 0), _h, _del(context)],
           ),
+          _halfV,
         ],
       );
 }
@@ -122,7 +127,7 @@ class TimeKeypadVisor extends StatelessWidget {
   final ValueListenable<TimeKeypadResult> result;
 
   static const _h = SizedBox(width: 16);
-  Widget _displayText(BuildContext context, String text) => Text(
+  Widget _displayText(BuildContext context, String text) => NumberText(
         text,
         style: context.textTheme.displayLarge,
       );
@@ -205,12 +210,13 @@ class TimeKeypadAndVisor extends StatelessWidget {
             flex: 8,
             child: Padding(
               padding: const EdgeInsets.only(
-                left: 8.0,
-                right: 8.0,
+                left: 12.0,
+                right: 12.0,
                 bottom: 16.0,
               ),
               child: TimeKeypad(
                 controller: controller,
+                isPortrait: !isLandscape,
               ),
             ),
           ),
