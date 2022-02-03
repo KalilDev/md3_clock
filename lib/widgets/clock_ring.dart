@@ -156,7 +156,7 @@ class _TimerFracDecorationPainter extends BoxPainter {
     this.colors,
   );
 
-  static const kStrokeWidth = 8.0;
+  static const kStrokeWidth = 10.0;
   @override
   void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
     const start = -pi / 2;
