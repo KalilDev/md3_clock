@@ -158,7 +158,7 @@ class StopwatchPageController extends ControllerBase {
             (number) => totalElapsedTime.bind(
               (totalElapsedTime) => lapElapsedTime.map(
                 (lapElapsedTime) => Lap(
-                  number,
+                  number + 1,
                   lapElapsedTime,
                   totalElapsedTime,
                 ),
