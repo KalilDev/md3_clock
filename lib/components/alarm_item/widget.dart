@@ -4,8 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/model/weekday.dart';
+import 'package:md3_clock/widgets/duration.dart';
 import 'package:value_notifier/value_notifier.dart';
-
+import 'package:flutter_monet_theme/flutter_monet_theme.dart';
 import '../../model/alarm.dart';
 import '../../widgets/weekday_picker.dart';
 import 'controller.dart';
@@ -40,46 +41,79 @@ class _AlarmItemBasicSection extends StatelessWidget {
       : super(key: key);
   final AlarmItemController controller;
 
+  SizedBox _timeTextAndSwitch(BuildContext context) => SizedBox(
+        height: kMinInteractiveDimension,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _ActivatableDefaultTextStyle(
+              isActive: controller.active,
+              activeTextStyle: context.textTheme.bodyMedium.copyWith(
+                color: context.colorScheme.onSurface,
+              ),
+              inactiveTextStyle: context.textTheme.bodyMedium.copyWith(
+                color: context.colorScheme.outline,
+              ),
+              child: controller.scheduleString.buildView(
+                builder: (context, scheduleString, _) => Text(scheduleString),
+              ),
+            ),
+            const Spacer(),
+            controller.active.buildView(
+              builder: (context, isActive, _) => MD3Switch(
+                value: isActive,
+                thumbColor: _defaultThumbColor(context),
+                trackColor: _defaultTrackColor(context),
+                onChanged: (v) => controller.setActive(v),
+              ),
+            ),
+            const SizedBox(width: 2),
+          ],
+        ),
+      );
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _AlarmItemTimeText(controller: controller),
-        SizedBox(
-          height: kMinInteractiveDimension,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(width: _kExtraLeftPadding),
-              _ActivatableDefaultTextStyle(
-                isActive: controller.active,
-                activeTextStyle: context.textTheme.bodyMedium.copyWith(
-                  color: context.colorScheme.onSurface,
-                  fontWeight: FontWeight.normal,
-                ),
-                inactiveTextStyle: context.textTheme.bodyMedium.copyWith(
-                  color: context.colorScheme.outline,
-                  fontWeight: FontWeight.normal,
-                ),
-                child: controller.scheduleString.buildView(
-                  builder: (context, scheduleString, _) => Text(scheduleString),
-                ),
-              ),
-              const Spacer(),
-              controller.active.buildView(
-                builder: (context, isActive, _) => MD3Switch(
-                  value: isActive,
-                  onChanged: (v) => controller.setActive(v),
-                ),
-              ),
-            ],
+  Widget build(BuildContext context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _AlarmItemInnerPadding(
+            child: _AlarmItemTimeText(controller: controller),
           ),
-        )
-      ],
-    );
-  }
+          _AlarmItemInnerPadding(
+            child: _timeTextAndSwitch(context),
+          )
+        ],
+      );
+}
+
+MaterialStateProperty<Color> _defaultTrackColor(BuildContext context) {
+  final colorScheme = context.colorScheme;
+
+  return MaterialStateProperty.resolveWith((Set<MaterialState> states) {
+    if (states.contains(MaterialState.disabled)) {
+      return colorScheme.onSurface.withOpacity(0.12);
+    }
+    if (states.contains(MaterialState.selected)) {
+      return colorScheme.primary;
+    }
+    return colorScheme.surfaceVariant;
+  });
+}
+
+MaterialStateProperty<Color> _defaultThumbColor(BuildContext context) {
+  final ThemeData theme = Theme.of(context);
+  final bool isDark = theme.brightness == Brightness.dark;
+  final colorScheme = context.colorScheme;
+
+  return MaterialStateProperty.resolveWith((Set<MaterialState> states) {
+    if (states.contains(MaterialState.disabled)) {
+      return colorScheme.onSurface.withOpacity(0.38);
+    }
+    if (states.contains(MaterialState.selected)) {
+      return colorScheme.onPrimary;
+    }
+    return colorScheme.onPrimary.withOpacity(0.38);
+  });
 }
 
 class _AlarmItemTimeText extends StatelessWidget {
@@ -92,6 +126,16 @@ class _AlarmItemTimeText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const adaptativeTextStyle = MD3TextStyle(
+      base: TextStyle(fontFamily: 'Google Sans Display'),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(
+          size: 52,
+          height: 52,
+        ),
+      ),
+    );
+    final style = adaptativeTextStyle.resolveTo(context.deviceType);
     return InkWell(
       onTap: () {
         controller.maybeExpand();
@@ -105,17 +149,21 @@ class _AlarmItemTimeText extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(top: 4.0, bottom: 2.0),
         child: _ActivatableDefaultTextStyle(
-          activeTextStyle: context.textTheme.displayMedium.copyWith(
+          activeTextStyle: style.copyWith(
             color: context.colorScheme.onSurface,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
           ),
-          inactiveTextStyle: context.textTheme.displayMedium.copyWith(
+          inactiveTextStyle: style.copyWith(
             color: context.colorScheme.outline,
-            fontWeight: FontWeight.normal,
+            fontWeight: FontWeight.w400,
           ),
           isActive: controller.active,
-          child: controller.timeString.buildView(
-            builder: (context, timeString, _) => Text(timeString),
+          child: controller.time.buildView(
+            builder: (context, time, _) => TimeOfDayWidget(
+              timeOfDay: time,
+              padHours: true,
+              numberStyle: DefaultTextStyle.of(context).style,
+            ),
           ),
         ),
       ),
@@ -213,6 +261,53 @@ class _AlarmItemHiddenSection extends StatelessWidget {
         isActive: isActive,
       );
 
+  Widget _weekdaysPicker(BuildContext context) => controller.active
+      .bind(
+        (active) => controller.weekdays
+            .map((weekdays) => _WeekdaysAndActive(active, weekdays)),
+      )
+      .buildView(
+        builder: (context, weekdaysAndActive, _) => _buildWeekdaysPicker(
+          context,
+          weekdaysAndActive.weekdays,
+          weekdaysAndActive.isActive,
+        ),
+      );
+
+  Widget _alarmTile(BuildContext context) => controller.alarm.buildView(
+        builder: (context, alarm, _) => _ListTile(
+          leading: Icon(
+            alarm.source == AlarmSource.sounds ? Icons.alarm : Icons.stop,
+          ),
+          title: Text(alarm.text),
+          onTap: () => showAlarmDialog(context),
+        ),
+      );
+
+  Widget _vibrateTile(BuildContext context) => _ListTile(
+        leading: const Icon(Icons.vibration),
+        title: const Text('Vibrar'),
+        onTap: controller.toggleVibrate,
+        trailing: controller.vibrate.buildView(
+          builder: (context, vibrate, _) => Checkbox(
+            value: vibrate,
+            onChanged: (v) => controller.setVibrate(v!),
+          ),
+        ),
+      );
+
+  Widget _deleteTile(BuildContext context) => IntrinsicWidth(
+        child: _ListTile(
+          leading: const Icon(Icons.delete_outline),
+          title: const Text('Excluir'),
+          contentPadding: const EdgeInsets.only(
+            left: _kExtraLeftPadding,
+            right: 8,
+          ),
+          onTap: controller.delete,
+        ),
+      );
+
   @override
   Widget build(BuildContext context) => _ExpansionAnimation(
         isExpanded: controller.expanded,
@@ -220,52 +315,17 @@ class _AlarmItemHiddenSection extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8.0),
-            controller.active
-                .bind(
-                  (active) => controller.weekdays
-                      .map((weekdays) => _WeekdaysAndActive(active, weekdays)),
-                )
-                .buildView(
-                  builder: (context, weekdaysAndActive, _) =>
-                      _buildWeekdaysPicker(
-                    context,
-                    weekdaysAndActive.weekdays,
-                    weekdaysAndActive.isActive,
-                  ),
-                ),
+            _weekdaysPicker(context),
+            _AlarmItemInnerPadding(
+              child: _alarmTile(context),
+            ),
+            _AlarmItemInnerPadding(
+              child: _vibrateTile(context),
+            ),
+            _AlarmItemInnerPadding(
+              child: _deleteTile(context),
+            ),
             const SizedBox(height: 8),
-            controller.alarm.buildView(
-              builder: (context, alarm, _) => _ListTile(
-                leading: Icon(
-                  alarm.source == AlarmSource.sounds ? Icons.alarm : Icons.stop,
-                ),
-                title: Text(alarm.text),
-                onTap: () => showAlarmDialog(context),
-              ),
-            ),
-            _ListTile(
-              leading: const Icon(Icons.vibration),
-              title: const Text('Vibrar'),
-              onTap: controller.toggleVibrate,
-              trailing: controller.vibrate.buildView(
-                builder: (context, vibrate, _) => Checkbox(
-                  value: vibrate,
-                  onChanged: (v) => controller.setVibrate(v!),
-                ),
-              ),
-            ),
-            IntrinsicWidth(
-              child: _ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: const Text('Excluir'),
-                contentPadding: const EdgeInsets.only(
-                  left: _kExtraLeftPadding,
-                  right: 8,
-                ),
-                onTap: controller.delete,
-              ),
-            ),
           ],
         ),
       );
@@ -398,7 +458,7 @@ class _AlarmItemMarker extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 48.0),
       child: _ListTile(
-        dense: true,
+        dense: false,
         leading: const Icon(Icons.label_outline),
         onTap: () => _showDialog(context, marker),
         title: Text(
@@ -462,21 +522,23 @@ class _AlarmItemMarker extends StatelessWidget {
       );
 
   @override
-  Widget build(BuildContext context) => controller.expanded
-      .bind(
-        (isExpanded) => controller.marker.map(
-          (marker) => _MarkerAndIsExpanded(
-            marker,
-            isExpanded,
-          ),
-        ),
-      )
-      .buildView(
-        builder: (context, markerAndIsExpanded, _) => _buildChild(
-          context,
-          markerAndIsExpanded.isExpanded,
-          markerAndIsExpanded.marker,
-        ),
+  Widget build(BuildContext context) => _AlarmItemInnerPadding(
+        child: controller.expanded
+            .bind(
+              (isExpanded) => controller.marker.map(
+                (marker) => _MarkerAndIsExpanded(
+                  marker,
+                  isExpanded,
+                ),
+              ),
+            )
+            .buildView(
+              builder: (context, markerAndIsExpanded, _) => _buildChild(
+                context,
+                markerAndIsExpanded.isExpanded,
+                markerAndIsExpanded.marker,
+              ),
+            ),
       );
 }
 
@@ -496,71 +558,58 @@ void focusScrollviewOnContext(BuildContext context) {
 
 const _kAnimationDuration = const Duration(milliseconds: 300);
 
-class _ExpandableHeight extends StatelessWidget {
-  const _ExpandableHeight({
-    Key? key,
-    required this.isExpanded,
-    required this.hidden,
-    required this.expanded,
-    this.child,
-  }) : super(key: key);
-  final ValueListenable<bool> isExpanded;
-  final double hidden;
-  final double expanded;
-  final Widget? child;
+class _AlarmItemInnerPadding extends StatelessWidget {
+  const _AlarmItemInnerPadding({Key? key, required this.child})
+      : super(key: key);
+  final Widget child;
 
   @override
-  Widget build(BuildContext context) => isExpanded.buildView(
-        builder: (context, isExpanded, child) => TweenAnimationBuilder<double>(
-          tween: Tween(end: isExpanded ? expanded : hidden),
-          duration: _kAnimationDuration,
-          builder: (context, height, child) => SizedBox(
-            height: height,
-            child: child,
-          ),
-          child: child,
-        ),
+  Widget build(BuildContext context) => Padding(
+        padding: EdgeInsets.symmetric(horizontal: 4),
         child: child,
       );
 }
 
+// 4 dos dois lados em smallll
 class AlarmItemCard extends StatelessWidget {
-  const AlarmItemCard({Key? key, required this.controller}) : super(key: key);
+  const AlarmItemCard({
+    Key? key,
+    required this.controller,
+    required this.useSmallPadding,
+  }) : super(key: key);
   final AlarmItemController controller;
+  final bool useSmallPadding;
 
   @override
-  Widget build(BuildContext context) {
-    return FilledCard(
-      onPressed: controller.toggleExpanded,
-      child: Stack(
-        fit: StackFit.passthrough,
-        children: [
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _AlarmItemMarker(controller: controller),
-              _AlarmItemBasicSection(controller: controller),
-              _AlarmItemHiddenSection(controller: controller),
-            ],
-          ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: _AlarmItemExpansionButton(controller: controller),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => FilledCard(
+        onPressed: controller.toggleExpanded,
+        child: Stack(
+          fit: StackFit.passthrough,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: useSmallPadding ? 16 : 36,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _AlarmItemMarker(controller: controller),
+                  _AlarmItemBasicSection(controller: controller),
+                  _AlarmItemHiddenSection(controller: controller),
+                ],
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: useSmallPadding ? 4 : 32,
+              child: _AlarmItemExpansionButton(controller: controller),
+            ),
+          ],
+        ),
+      );
 }
 
 extension on AlarmItemController {
-  IDisposableValueListenable<String> get timeString => time.map(
-        (time) =>
-            time.hour.toString().padLeft(2, '0') +
-            ':' +
-            time.minute.toString().padLeft(2, '0'),
-      );
   IDisposableValueListenable<String> get scheduleString => weekdays.bind(
         (weekdays) => active.map(
           (active) => weekdays.text(active),
@@ -603,18 +652,24 @@ class _AlarmItemExpansionButton extends StatelessWidget {
   final AlarmItemController controller;
 
   @override
-  Widget build(BuildContext context) => IconButton(
-        onPressed: controller.toggleExpanded,
-        icon: Ink(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: context.colorScheme.surfaceVariant,
-          ),
-          child: _RotationAnimation(
-            isRotated: controller.expanded.map((expanded) => !expanded),
-            child: const Icon(
-              Icons.chevron_left,
-              size: 18,
+  Widget build(BuildContext context) => SizedBox(
+        width: 56,
+        height: 48,
+        child: Center(
+          child: IconButton(
+            onPressed: controller.toggleExpanded,
+            icon: Ink(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: context.colorScheme.surfaceVariant,
+              ),
+              child: _RotationAnimation(
+                isRotated: controller.expanded.map((expanded) => !expanded),
+                child: const Icon(
+                  Icons.chevron_left,
+                  size: 24,
+                ),
+              ),
             ),
           ),
         ),

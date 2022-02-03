@@ -7,6 +7,7 @@ import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/components/sorted_animated_list/controller.dart';
 import 'package:md3_clock/components/sorted_animated_list/widget.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
+import 'package:md3_clock/widgets/fab_safe_area.dart';
 import 'package:value_notifier/value_notifier.dart';
 
 import '../../components/alarm_item/controller.dart';
@@ -136,7 +137,11 @@ class _AlarmItemCard extends StatelessWidget {
         key: ObjectKey(didRequestScrollToTop),
         event: didRequestScrollToTop,
         onEvent: (_) => focusScrollviewOnContext(context),
-        child: AlarmItemCard(controller: controller),
+        child: AlarmItemCard(
+          controller: controller,
+          useSmallPadding:
+              MediaQuery.of(context).orientation != Orientation.landscape,
+        ),
       ),
     );
   }
@@ -172,19 +177,10 @@ class _AlarmPageState extends State<AlarmPage> {
     BuildContext context, {
     required Widget child,
   }) {
-    final isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
-    final isTiny = MediaQuery.of(context).size.shortestSide < 360;
-    final useLargerPadding = isLandscape;
     return FilledCardTheme(
       data: FilledCardThemeData(
         style: CardStyle(
             clipBehavior: Clip.antiAlias,
-            padding: MaterialStateProperty.all(
-              EdgeInsets.symmetric(
-                horizontal: useLargerPadding ? 44 : 16,
-              ),
-            ),
             backgroundColor: MD3ElevationTintableColor(
               context.colorScheme.surface,
               MD3ElevationLevel.surfaceTint(context.colorScheme),
@@ -209,9 +205,10 @@ class _AlarmPageState extends State<AlarmPage> {
       child: SortedAnimatedList<AlarmItemController>(
         key: listKey,
         controller: widget.controller.alarmItemListController,
-        padding: const EdgeInsets.symmetric(
-          vertical: CardStyle.kMaxCardSpacing / 2,
-        ),
+        padding: const EdgeInsets.only(
+          top: CardStyle.kMaxCardSpacing / 2,
+          bottom: 24,
+        ).add(FabSafeArea.fabPaddingFor(context)),
         removingItemBuilder: (context, value, animation) => _ListExitTransition(
           key: ObjectKey(animation),
           animation: animation,
