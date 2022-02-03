@@ -207,16 +207,10 @@ class _AlarmItemHiddenSection extends StatelessWidget {
     Weekdays weekdays,
     bool isActive,
   ) =>
-      Padding(
-        padding: const EdgeInsets.only(
-          left: _kExtraLeftPadding,
-          right: 56 / 3,
-        ),
-        child: WeekdaysPicker(
-          value: weekdays,
-          onTap: controller.toggleWeekday,
-          isActive: isActive,
-        ),
+      WeekdaysPicker(
+        value: weekdays,
+        onTap: controller.toggleWeekday,
+        isActive: isActive,
       );
 
   @override

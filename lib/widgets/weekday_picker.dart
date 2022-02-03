@@ -7,7 +7,7 @@ import 'package:md3_clock/utils/utils.dart';
 import '../model/weekday.dart';
 
 const _kWeekdaySize = 32.0;
-const _kWeekdayMinSep = 6.0;
+const _kWeekdayMinSep = 20.0;
 const _weekdayMinSpace = SizedBox(width: _kWeekdayMinSep);
 
 class WeekdaysPicker extends StatelessWidget {
@@ -74,34 +74,34 @@ class WeekdaysPicker extends StatelessWidget {
     );
   }
 
-  Widget _buildLayout(BuildContext context, BoxConstraints constraints) {
-    final width = constraints.maxWidth;
+  @override
+  Widget build(BuildContext context) {
     final child = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisSize: MainAxisSize.min,
       children: Weekday.values
           .map((e) => _buildValue(context, e))
-          .interleaved((_) => _weekdayMinSpace)
+          .map((e) => Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 7.0,
+              ),
+              child: e))
+          .expand((p) => [
+                p,
+                SizedBox(
+                  width: _kWeekdayMinSep,
+                )
+              ])
           .toList(),
     );
-    final minRowWidth = (Weekday.values.length - 1) * _kWeekdayMinSep +
-        Weekday.values.length * _kWeekdaySize;
-    final rowWidth = max(minRowWidth, width);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Padding(
-        padding: rowWidth == minRowWidth
-            ? const EdgeInsets.all(1.0)
-            : EdgeInsets.zero,
-        child: SizedBox(
-          width: rowWidth,
-          child: child,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 1.0),
+        child: child,
       ),
     );
   }
-
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: _buildLayout);
 }
 
 extension WeekdayViewE on Weekday {
