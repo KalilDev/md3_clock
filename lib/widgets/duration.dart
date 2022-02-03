@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/utils/utils.dart';
+import 'package:md3_clock/widgets/prototype_text/raw.dart';
 
 import '../model/duration_components.dart';
+import 'prototype_text/widget.dart';
 
 class DurationWidget extends StatelessWidget {
   const DurationWidget({
@@ -19,32 +21,6 @@ class DurationWidget extends StatelessWidget {
 
   static TextStyle defaultStyleFor(BuildContext context) =>
       TimeComponentsWidget.defaultStyleFor(context);
-  static TextSpan spanFor({
-    required Duration duration,
-    required TextStyle style,
-    bool alwaysPadSeconds = false,
-  }) {
-    final time = DurationComponents.fromDuration(duration);
-    final writeHours = time.hours > 0;
-    final writeMinutes = time.minutes > 0 || writeHours;
-
-    final timeComponents = [
-      if (writeHours) time.hours,
-      if (writeMinutes) time.minutes,
-      time.seconds,
-    ];
-    final shouldPad = [
-      if (writeHours) true,
-      if (writeMinutes) writeHours,
-      alwaysPadSeconds || writeMinutes,
-    ];
-
-    return TimeComponentsWidget.spanFor(
-      components: timeComponents,
-      padComponent: shouldPad,
-      style: style,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +43,7 @@ class DurationWidget extends StatelessWidget {
       components: timeComponents,
       padComponent: shouldPad,
       numberStyle: numberStyle,
-      separatorStyle: separatorStyle,
+      isNegative: time.isNegative,
     );
   }
 }
@@ -77,12 +53,10 @@ class TimeOfDayWidget extends StatelessWidget {
     Key? key,
     required this.timeOfDay,
     this.numberStyle,
-    this.separatorStyle,
     this.padHours = false,
   }) : super(key: key);
   final TimeOfDay timeOfDay;
   final TextStyle? numberStyle;
-  final TextStyle? separatorStyle;
   final bool padHours;
 
   @override
@@ -100,7 +74,6 @@ class TimeOfDayWidget extends StatelessWidget {
       components: timeComponents,
       padComponent: shouldPad,
       numberStyle: numberStyle,
-      separatorStyle: separatorStyle,
     );
   }
 }
@@ -111,12 +84,12 @@ class TimeComponentsWidget extends StatelessWidget {
     required this.components,
     required this.padComponent,
     this.numberStyle,
-    this.separatorStyle,
+    this.isNegative,
   }) : super(key: key);
   final List<int> components;
   final List<bool> padComponent;
   final TextStyle? numberStyle;
-  final TextStyle? separatorStyle;
+  final bool? isNegative;
   static String _valueToPaddedString(int value) =>
       value.toString().padLeft(2, '0');
 
@@ -125,28 +98,63 @@ class TimeComponentsWidget extends StatelessWidget {
     bool pad,
   ) =>
       pad ? _valueToPaddedString(digits) : digits.toString();
+
+  static String _referenceDigits(
+    int digits,
+    bool pad,
+  ) {
+    final length = pad ? 2 : digits.toString().length;
+    return '0' * length;
+  }
+
   static const _kSeparator = ':';
 
   static TextStyle defaultStyleFor(BuildContext context) =>
       context.textTheme.displayLarge;
-  static TextSpan spanFor({
-    required List<int> components,
-    required List<bool> padComponent,
-    required TextStyle style,
-  }) {
-    return TextSpan(
-      style: style,
-      text: Iterable.generate(
-        components.length,
-        (i) => _digits(
-          components[i],
-          padComponent[i],
-        ),
-      )
-          .interleaved(
-            (_) => _kSeparator,
-          )
-          .join(),
+
+  static const _kDigits = {
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final isNegativeText = [if (isNegative == true) '-'];
+    final text = isNegativeText
+        .followedBy(Iterable.generate(
+          components.length,
+          (i) => _digits(
+            components[i],
+            padComponent[i],
+          ),
+        ).interleaved(
+          (_) => _kSeparator,
+        ))
+        .join();
+    final referenceText = isNegativeText
+        .followedBy(Iterable.generate(
+          components.length,
+          (i) => _referenceDigits(
+            components[i],
+            padComponent[i],
+          ),
+        ).interleaved(
+          (_) => _kSeparator,
+        ))
+        .join();
+    return PrototypeText(
+      reference: referenceText,
+      target: text,
+      initialCharacterSet: _kDigits,
+      style: numberStyle ?? defaultStyleFor(context),
     );
   }
 }
