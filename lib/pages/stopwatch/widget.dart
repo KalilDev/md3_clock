@@ -15,6 +15,8 @@ import 'package:md3_clock/widgets/blinking.dart';
 import 'package:md3_clock/widgets/clock_ring.dart';
 import 'package:md3_clock/widgets/duration.dart';
 import 'package:md3_clock/widgets/fab_safe_area.dart';
+import 'package:md3_clock/widgets/prototype_text/raw.dart';
+import 'package:md3_clock/widgets/prototype_text/widget.dart';
 import 'package:value_notifier/value_notifier.dart';
 
 import '../../model/lap.dart';
@@ -46,8 +48,6 @@ class _LapDurationText extends StatelessWidget {
 
   String _padded(int num, int width) => num.toString().padLeft(width, '0');
 
-  static const _kSeparator = SizedBox(width: 4.0);
-
   List<String> _numAndSep(int num, int width) => [
         _padded(num, width),
         ' ',
@@ -60,21 +60,31 @@ class _LapDurationText extends StatelessWidget {
         minutesWidth = componentWidths[2],
         secondsWidth = componentWidths[3],
         milisWidth = componentWidths[4];
+    const kComma = ',';
     final texts = [
       if (daysWidth != 0) ..._numAndSep(comps.days, daysWidth),
       if (hoursWidth != 0) ..._numAndSep(comps.hours, hoursWidth),
       if (minutesWidth != 0) ..._numAndSep(comps.minutes, minutesWidth),
-      if (secondsWidth != 0) ..._numAndSep(comps.seconds, secondsWidth),
-      if (milisWidth != 0) ...[
-        ',',
+      if (secondsWidth != 0) ...[
+        _padded(comps.seconds, secondsWidth),
+        kComma,
+      ],
+      if (milisWidth != 0)
         _padded(
           comps.miliseconds ~/ 10,
           milisWidth,
         ),
-      ],
     ];
-    return Text(texts.join());
+    final tgtText = texts.join();
+    final refText =
+        tgtText.replaceAll(numberRegex, '0').replaceAll(kComma, ' ');
+    return PrototypeText(
+      target: tgtText,
+      reference: refText,
+    );
   }
+
+  static final numberRegex = RegExp('[0-9]');
 }
 
 extension on StopwatchPageController {
@@ -150,7 +160,7 @@ class _Lap extends StatelessWidget {
   final Lap lap;
   final _LapWidthInfo? widthInfo;
 
-  static const _kDurationSepWidth = 12.0;
+  static const _kDurationSepWidth = 16.0;
   static const _kLapNumberSepWidth = 4.0;
 
   Widget _row(
@@ -166,7 +176,7 @@ class _Lap extends StatelessWidget {
         const Spacer(),
         Text('Nº', style: lapNumberStyle),
         const SizedBox(width: _kLapNumberSepWidth),
-        Text(
+        NumberText(
           lap.number.toString().padLeft(lapNumberWidth, '0'),
           style: lapNumberStyle,
         ),
@@ -187,12 +197,15 @@ class _Lap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = this.widthInfo ?? _InheritedLapWidthInfo.of(context);
-    return _LapTextStyle(
-      child: _row(
-        context,
-        width.lapNumberWidth,
-        width.durationComponentsWidth,
+    final width = widthInfo ?? _InheritedLapWidthInfo.of(context);
+    return SizedBox(
+      height: 26,
+      child: _LapTextStyle(
+        child: _row(
+          context,
+          width.lapNumberWidth,
+          width.durationComponentsWidth,
+        ),
       ),
     );
   }
@@ -320,26 +333,34 @@ class _StopwatchDurationText extends StatelessWidget {
         ),
       );
 
-  Widget _body(BuildContext context, DurationComponents duration) => Text.rich(
-        TextSpan(
-          children: [
-            DurationWidget.spanFor(
-              duration: duration.toDuration(),
-              alwaysPadSeconds: true,
-              style: DurationWidget.defaultStyleFor(context),
-            ),
-            TextSpan(text: '\n'),
-            TextSpan(
-              text: (duration.miliseconds ~/ 10)
-                  .clamp(0, 99)
-                  .toString()
-                  .padLeft(2, '0'),
-              style: context.textTheme.displayMedium,
-            )
-          ],
+  Widget _body(BuildContext context, DurationComponents duration) {
+    const adaptativeTextStyle = MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Google Sans Display',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 70, height: 79),
+      ),
+    );
+    final textStyle = adaptativeTextStyle.resolveTo(context.deviceType);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        DurationWidget(
+          duration: duration.toDuration(),
+          alwaysPadSeconds: true,
+          numberStyle: textStyle,
         ),
-        textAlign: TextAlign.end,
-      );
+        NumberText(
+          (duration.miliseconds ~/ 10).clamp(0, 99).toString().padLeft(2, '0'),
+          style: context.textTheme.displayLarge,
+        )
+      ],
+    );
+  }
 }
 
 class _ClockRing extends StatelessWidget {
@@ -552,11 +573,14 @@ class StopwatchPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _ClockRing(
-              controller: controller,
-              child: Center(
-                child: _StopwatchDurationText(
-                  controller: controller,
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 2 / 3,
+              child: _ClockRing(
+                controller: controller,
+                child: Center(
+                  child: _StopwatchDurationText(
+                    controller: controller,
+                  ),
                 ),
               ),
             ),
