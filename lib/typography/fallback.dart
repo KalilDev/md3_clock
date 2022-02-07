@@ -25,6 +25,36 @@ const MD3ClockTypography md3ClockTypography = MD3ClockTypography(
         MD3TextAdaptativeProperties(size: 52, height: 52),
       ),
     ),
+    currentTimeDisplay: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 70, height: 114),
+      ),
+    ),
+    stopwatchDisplay: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 70, height: 90),
+      ),
+    ),
+    stopwatchMilisDisplay: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 57, height: 72),
+      ),
+    ),
   ),
   adaptativeTextTheme: MD3TextAdaptativeTheme(
     displayLarge: MD3TextStyle(

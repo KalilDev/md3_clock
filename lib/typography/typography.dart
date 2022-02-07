@@ -12,9 +12,15 @@ class MD3ClockTextTheme {
   const MD3ClockTextTheme({
     required this.largeTimeDisplay,
     required this.mediumTimeDisplay,
+    required this.currentTimeDisplay,
+    required this.stopwatchDisplay,
+    required this.stopwatchMilisDisplay,
   });
   final MD3TextStyle largeTimeDisplay;
   final MD3TextStyle mediumTimeDisplay;
+  final MD3TextStyle currentTimeDisplay;
+  final MD3TextStyle stopwatchDisplay;
+  final MD3TextStyle stopwatchMilisDisplay;
 }
 
 class MD3ClockTypography {
