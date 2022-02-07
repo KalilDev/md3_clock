@@ -9,6 +9,7 @@ import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/components/fab_group/controller.dart';
 import 'package:md3_clock/components/fab_group/widget.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
+import 'package:md3_clock/typography/typography.dart';
 import 'package:md3_clock/utils/layout.dart';
 import 'package:md3_clock/widgets/switcher.dart';
 import 'package:value_notifier/value_notifier.dart';
@@ -105,6 +106,9 @@ class _TimerSectionPage extends StatelessWidget {
 
   Widget _buildLandscape(BuildContext context) {
     final tinyLayout = isTiny(context);
+    final adaptativeTextStyle =
+        MD3ClockTypography.instance.clockTextTheme.largeTimeDisplay;
+    final textStyle = adaptativeTextStyle.resolveTo(context.deviceType);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -130,6 +134,7 @@ class _TimerSectionPage extends StatelessWidget {
                         )
                       : _TimerClockRingBody(
                           controller: controller,
+                          style: textStyle,
                         ),
                 ),
               ),
@@ -140,32 +145,41 @@ class _TimerSectionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPortrait(BuildContext context) => FabSafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: _kBottomPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Expanded(
-                child: SizedBox.expand(
-                  child: _TimerSectionTitle(),
-                ),
+  Widget _buildPortrait(BuildContext context) {
+    final adaptativeTextStyle =
+        MD3ClockTypography.instance.clockTextTheme.largeTimeDisplay;
+    final textStyle = adaptativeTextStyle.resolveTo(context.deviceType);
+    return FabSafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: _kBottomPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Expanded(
+              child: SizedBox.expand(
+                child: _TimerSectionTitle(),
               ),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: _kHorizontalPadding,
-                  ),
+            ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: _kHorizontalPadding,
+                ),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 2 / 3,
                   child: _TimerClockRingBody(
                     controller: controller,
+                    style: textStyle,
                   ),
                 ),
               ),
-              Spacer(),
-            ],
-          ),
+            ),
+            Spacer(),
+          ],
         ),
-      );
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) =>
@@ -252,9 +266,11 @@ class _TimerDurationText extends StatelessWidget {
   const _TimerDurationText({
     Key? key,
     required this.controller,
+    this.style,
   }) : super(key: key);
 
   final TimerSectionController controller;
+  final TextStyle? style;
 
   DefaultTextStyle _buildDurationWrapper(
     BuildContext context, {
@@ -276,6 +292,7 @@ class _TimerDurationText extends StatelessWidget {
         child: controller.remainingTimerDuration.build(
           builder: (context, duration, _) => DurationWidget(
             duration: duration,
+            numberStyle: style,
           ),
         ),
       );
@@ -285,31 +302,29 @@ class _TimerClockRingBody extends StatelessWidget {
   const _TimerClockRingBody({
     Key? key,
     required this.controller,
+    this.style,
   }) : super(key: key);
 
   final TimerSectionController controller;
+  final TextStyle? style;
   @override
-  // either 2/3 or 360
-  Widget build(BuildContext context) => SizedBox(
-        width: MediaQuery.of(context).size.width * 2 / 3,
-        child: Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: _ClockRing(
-            controller: controller,
-            child: _ClockRingChildLayout(
-              button: _TimerResetOrAddMinuteButton(
-                controller: controller,
-                style: ButtonStyle(
-                  fixedSize:
-                      MaterialStateProperty.all(const Size.fromHeight(42)),
-                  textStyle: MaterialStateProperty.all(
-                    context.textTheme.labelMedium,
-                  ),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: _ClockRing(
+          controller: controller,
+          child: _ClockRingChildLayout(
+            button: _TimerResetOrAddMinuteButton(
+              controller: controller,
+              style: ButtonStyle(
+                fixedSize: MaterialStateProperty.all(const Size.fromHeight(42)),
+                textStyle: MaterialStateProperty.all(
+                  context.textTheme.labelMedium,
                 ),
               ),
-              durationText: _TimerDurationText(
-                controller: controller,
-              ),
+            ),
+            durationText: _TimerDurationText(
+              controller: controller,
+              style: style,
             ),
           ),
         ),
