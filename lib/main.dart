@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
     final monetTheme = (palette.source != PaletteSource.platform || kDebugMode)
         ? ClockTheme.baseline
         : ClockTheme.fromPlatform(palette);
+    const themeMode = kDebugMode ? ThemeMode.dark : ThemeMode.system;
     return MD3Themes(
       targetPlatform: TargetPlatform.android,
       monetThemeForFallbackPalette: monetTheme,
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
         title: 'Relógio',
         theme: light,
         darkTheme: dark,
+        themeMode: themeMode,
         debugShowCheckedModeBanner: false,
         home: _DesktopOverlays(
           child: const ClockHomePage(),
