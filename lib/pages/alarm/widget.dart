@@ -257,6 +257,7 @@ class AlarmPageFab extends StatelessWidget {
       );
     }
     return MD3FloatingActionButton(
+      style: ButtonStyle(fixedSize: MaterialStateProperty.all(Size.square(72))),
       onPressed: onPressed,
       colorScheme: primarySchemeOf(context),
       child: child,
