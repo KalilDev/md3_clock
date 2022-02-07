@@ -62,14 +62,26 @@ class WorldClockSearchController extends ControllerBase {
   ValueListenable<String> get debouncedQueryString =>
       _debouncedQueryString.view();
 
-  ValueListenable<bool> get isLoading => _connectedQueryFetch
-      .view()
-      .map((snap) => snap.connectionState == ConnectionState.waiting);
+  ValueListenable<bool> get isLoading =>
+      _connectedQueryFetch.view().map((snap) {
+        switch (snap.connectionState) {
+          case ConnectionState.waiting:
+          case ConnectionState.active:
+            return true;
+          case ConnectionState.none:
+          case ConnectionState.done:
+            return false;
+        }
+      });
 
-  // TODO: keep last query result
-  ValueListenable<List<City>> get queryResult => _connectedQueryFetch
+  // late final because whereKeepingPrevious creates an side effect
+  late final ValueListenable<List<City>> _queryResult = _connectedQueryFetch
       .view()
-      .map((snap) => snap.hasData ? snap.requireData : []);
+      .map((snap) => snap.hasData ? snap.requireData : null)
+      .whereKeepingPrevious((data) => data != null, initial: () => const [])
+      .castNotNull();
+
+  ValueListenable<List<City>> get queryResult => _queryResult.view();
 
   void setQuery(String query) => _queryString.value = query;
 

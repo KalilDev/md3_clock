@@ -1,5 +1,7 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
+import 'package:md3_clock/widgets/switcher.dart';
 import 'package:value_notifier/value_notifier.dart';
 
 import '../../model/city.dart';
@@ -34,14 +36,50 @@ class CitySearchDelegate extends MD3SearchDelegate<City> {
         onTap: () => Navigator.of(context).pop(city),
       );
 
+  Widget buildScaffold(
+    BuildContext context,
+    Widget textField,
+    Widget? body,
+  ) =>
+      MD3AdaptativeScaffold(
+        appBar: buildAppbar(context, textField),
+        body: MD3ScaffoldBody.noMargin(
+          child: SharedAxisSwitcher(
+            type: SharedAxisTransitionType.scaled,
+            child: body ?? const SizedBox.expand(),
+          ),
+        ),
+      );
+
   @override
-  Widget buildResults(BuildContext context) => controller.queryResult.buildView(
-        builder: (context, results, _) => results.isEmpty
-            ? _EmptySearchBody(controller: controller)
-            : ListView.builder(
-                itemBuilder: (context, i) => _buildCity(context, results[i]),
-                itemCount: results.length,
+  Widget buildResults(BuildContext context) => Stack(
+        children: [
+          Positioned.fill(
+            child: Builder(
+              builder: (context) => Padding(
+                padding: InheritedMD3BodyMargin.of(context).padding,
+                child: controller.queryResult.buildView(
+                  builder: (context, results, _) => results.isEmpty
+                      ? _EmptySearchBody(controller: controller)
+                      : ListView.builder(
+                          itemBuilder: (context, i) =>
+                              _buildCity(context, results[i]),
+                          itemCount: results.length,
+                        ),
+                ),
               ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            child: controller.isLoading
+                .map((isLoading) =>
+                    isLoading ? LinearProgressIndicator() : SizedBox())
+                .build(),
+          ),
+        ],
       );
 
   @override
@@ -67,37 +105,23 @@ class _EmptySearchBody extends StatelessWidget {
   final WorldClockSearchController controller;
 
   @override
-  Widget build(BuildContext context) => Stack(
-        children: [
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: controller.isLoading.buildView(
-              builder: (context, isLoading, _) =>
-                  isLoading ? LinearProgressIndicator() : SizedBox(),
+  Widget build(BuildContext context) => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.search,
+              size: 124,
+              color: context.colorScheme.onSurfaceVariant.withOpacity(0.6),
             ),
-          ),
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.search,
-                  size: 124,
-                  color: context.colorScheme.onSurfaceVariant.withOpacity(0.6),
-                ),
-                Text(
-                  'Pesquisar uma cidade',
-                  style: context.textTheme.bodyLarge.copyWith(
-                    color:
-                        context.colorScheme.onSurfaceVariant.withOpacity(0.6),
-                  ),
-                )
-              ],
-            ),
-          ),
-        ],
+            Text(
+              'Pesquisar uma cidade',
+              style: context.textTheme.bodyLarge.copyWith(
+                color: context.colorScheme.onSurfaceVariant.withOpacity(0.6),
+              ),
+            )
+          ],
+        ),
       );
 }
 
