@@ -7,7 +7,7 @@ import 'package:md3_clock/utils/utils.dart';
 import '../model/weekday.dart';
 
 const _kWeekdaySize = 32.0;
-const _kWeekdayMinSep = 20.0;
+const _kWeekdayMinSep = 21.0;
 const _weekdayMinSpace = SizedBox(width: _kWeekdayMinSep);
 
 class WeekdaysPicker extends StatelessWidget {
@@ -44,6 +44,7 @@ class WeekdaysPicker extends StatelessWidget {
         return BorderSide.none;
       }
       return BorderSide(
+        // one pixel
         width: 0.0,
         color: scheme.outline,
       );
@@ -66,8 +67,12 @@ class WeekdaysPicker extends StatelessWidget {
             context.stateOverlayOpacity,
           ),
           customBorder: const CircleBorder(),
-          child: Center(
-            child: Text(day.letter),
+          child: Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: FittedBox(
+              fit: BoxFit.fitHeight,
+              child: Text(day.letter),
+            ),
           ),
         ),
       ),
@@ -76,31 +81,32 @@ class WeekdaysPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final child = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: Weekday.values
-          .map((e) => _buildValue(context, e))
-          .map((e) => Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 7.0,
-              ),
-              child: e))
-          .expand((p) => [
-                p,
-                SizedBox(
-                  width: _kWeekdayMinSep,
-                )
-              ])
-          .toList(),
-    );
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 1.0),
-        child: child,
+    final child = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 1.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: Weekday.values
+            .map((e) => _buildValue(context, e))
+            .map<Widget>((e) => Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 7.0,
+                ),
+                child: e))
+            .followedBy([SizedBox()]).toList(),
       ),
     );
+    return LayoutBuilder(builder: (context, constraints) {
+      final width = constraints.maxWidth;
+      final size = Weekday.values.length * 48.0;
+      if (size > width) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: child,
+        );
+      }
+      return child;
+    });
   }
 }
 
