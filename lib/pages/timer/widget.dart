@@ -82,12 +82,21 @@ class _TimerSectionTitle extends StatelessWidget {
   const _TimerSectionTitle({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(left: 8.0),
-        child: Text(
-          'Marcador',
-          style: context.textTheme.titleLarge.copyWith(
-            color: context.colorScheme.onSurfaceVariant,
+  Widget build(BuildContext context) => Align(
+        alignment: Alignment.topLeft,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 10.0),
+          child: InkWell(
+            onTap: () => print('TODO'),
+            child: SizedBox(
+              height: kMinInteractiveDimension,
+              child: Text(
+                'Marcador',
+                style: context.textTheme.headlineSmall.copyWith(
+                  color: context.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
           ),
         ),
       );
@@ -166,7 +175,7 @@ class _TimerSectionPage extends StatelessWidget {
                   horizontal: _kHorizontalPadding,
                 ),
                 child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 2 / 3,
+                  width: 360,
                   child: _TimerClockRingBody(
                     controller: controller,
                     style: textStyle,
