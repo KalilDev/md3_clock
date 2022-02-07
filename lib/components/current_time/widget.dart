@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/model/date.dart';
+import 'package:md3_clock/typography/typography.dart';
 import 'package:md3_clock/utils/layout.dart';
 import 'package:md3_clock/widgets/duration.dart';
 import 'package:md3_clock/widgets/weekday_picker.dart';
@@ -75,7 +76,7 @@ class _DateAndNextAlarm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DefaultTextStyle(
-        style: context.textTheme.bodyMedium.copyWith(
+        style: context.textTheme.titleMedium.copyWith(
           color: context.colorScheme.onSurface,
         ),
         child: Row(
@@ -111,10 +112,15 @@ class _DigitalClock extends StatelessWidget {
         ),
       );
       numberStyle = adaptativeStyle.resolveTo(context.deviceType);
+    } else {
+      numberStyle = MD3ClockTypography
+          .instance.clockTextTheme.currentTimeDisplay
+          .resolveTo(context.deviceType);
     }
     return controller.currentTime.build(
       builder: (context, time, _) => TimeOfDayWidget(
         timeOfDay: time,
+        padHours: true,
         numberStyle: numberStyle,
       ),
     );
