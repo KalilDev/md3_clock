@@ -1,155 +1,181 @@
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 
-const MD3TextAdaptativeTheme md3ClockTypography = MD3TextAdaptativeTheme(
-  displayLarge: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0,
+import 'typography.dart';
+
+const MD3ClockTypography md3ClockTypography = MD3ClockTypography(
+  clockTextTheme: MD3ClockTextTheme(
+    largeTimeDisplay: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 70, height: 79),
+      ),
     ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 57, height: 64),
-    ),
-  ),
-  displayMedium: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0,
-    ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 45, height: 52),
-    ),
-  ),
-  displaySmall: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0,
-    ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 36, height: 44),
+    mediumTimeDisplay: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 52, height: 52),
+      ),
     ),
   ),
-  headlineLarge: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0,
+  adaptativeTextTheme: MD3TextAdaptativeTheme(
+    displayLarge: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 57, height: 64),
+      ),
     ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 32, height: 40),
+    displayMedium: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 45, height: 52),
+      ),
     ),
-  ),
-  headlineMedium: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0,
+    displaySmall: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 36, height: 44),
+      ),
     ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 28, height: 36),
+    headlineLarge: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 32, height: 40),
+      ),
     ),
-  ),
-  headlineSmall: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0,
+    headlineMedium: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 28, height: 36),
+      ),
     ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 24, height: 32),
+    headlineSmall: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 24, height: 32),
+      ),
     ),
-  ),
-  titleLarge: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0,
+    titleLarge: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 22, height: 28),
+      ),
     ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 22, height: 28),
+    titleMedium: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.1,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 16, height: 24),
+      ),
     ),
-  ),
-  titleMedium: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0.1,
+    titleSmall: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.1,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 14, height: 20),
+      ),
     ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 16, height: 24),
+    labelLarge: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.1,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 14, height: 20),
+      ),
     ),
-  ),
-  titleSmall: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0.1,
+    labelMedium: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.4,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 12, height: 16),
+      ),
     ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 14, height: 20),
+    labelSmall: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.5,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 11, height: 6),
+      ),
     ),
-  ),
-  labelLarge: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0.1,
+    bodyLarge: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.5,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 16, height: 24),
+      ),
     ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 14, height: 20),
+    bodyMedium: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.25,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 14, height: 20),
+      ),
     ),
-  ),
-  labelMedium: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0.4,
-    ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 12, height: 16),
-    ),
-  ),
-  labelSmall: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0.5,
-    ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 11, height: 6),
-    ),
-  ),
-  bodyLarge: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0.5,
-    ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 16, height: 24),
-    ),
-  ),
-  bodyMedium: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0.25,
-    ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 14, height: 20),
-    ),
-  ),
-  bodySmall: MD3TextStyle(
-    base: TextStyle(
-      fontFamily: 'Roboto',
-      fontWeight: FontWeight.w400,
-      letterSpacing: 0.5,
-    ),
-    scale: MD3TextAdaptativeScale.single(
-      MD3TextAdaptativeProperties(size: 12, height: 16),
+    bodySmall: MD3TextStyle(
+      base: TextStyle(
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.5,
+      ),
+      scale: MD3TextAdaptativeScale.single(
+        MD3TextAdaptativeProperties(size: 12, height: 16),
+      ),
     ),
   ),
 );

@@ -11,6 +11,8 @@ import 'package:md3_clock/components/fab_group/controller.dart';
 import 'package:md3_clock/components/fab_group/widget.dart';
 import 'package:md3_clock/model/duration_components.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
+import 'package:md3_clock/typography/typography.dart';
+import 'package:md3_clock/widgets/baseline_column/widget.dart';
 import 'package:md3_clock/widgets/blinking.dart';
 import 'package:md3_clock/widgets/clock_ring.dart';
 import 'package:md3_clock/widgets/duration.dart';
@@ -334,16 +336,8 @@ class _StopwatchDurationText extends StatelessWidget {
       );
 
   Widget _body(BuildContext context, DurationComponents duration) {
-    const adaptativeTextStyle = MD3TextStyle(
-      base: TextStyle(
-        fontFamily: 'Google Sans Display',
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0,
-      ),
-      scale: MD3TextAdaptativeScale.single(
-        MD3TextAdaptativeProperties(size: 70, height: 79),
-      ),
-    );
+    final adaptativeTextStyle =
+        MD3ClockTypography.instance.clockTextTheme.largeTimeDisplay;
     final textStyle = adaptativeTextStyle.resolveTo(context.deviceType);
     return BaselineColumn(
       crossAxisAlignment: CrossAxisAlignment.end,

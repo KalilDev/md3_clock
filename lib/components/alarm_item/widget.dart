@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/model/weekday.dart';
+import 'package:md3_clock/typography/typography.dart';
 import 'package:md3_clock/widgets/duration.dart';
 import 'package:value_notifier/value_notifier.dart';
 import 'package:flutter_monet_theme/flutter_monet_theme.dart';
@@ -126,15 +127,8 @@ class _AlarmItemTimeText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const adaptativeTextStyle = MD3TextStyle(
-      base: TextStyle(fontFamily: 'Google Sans Display'),
-      scale: MD3TextAdaptativeScale.single(
-        MD3TextAdaptativeProperties(
-          size: 52,
-          height: 52,
-        ),
-      ),
-    );
+    final adaptativeTextStyle =
+        MD3ClockTypography.instance.clockTextTheme.mediumTimeDisplay;
     final style = adaptativeTextStyle.resolveTo(context.deviceType);
     return InkWell(
       onTap: () {

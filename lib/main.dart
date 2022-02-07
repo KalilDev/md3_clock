@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
     return MD3Themes(
       targetPlatform: TargetPlatform.android,
       monetThemeForFallbackPalette: monetTheme,
-      textTheme: md3ClockTypography,
+      textTheme: MD3ClockTypography.instance.adaptativeTextTheme,
       usePlatformPalette: false,
       builder: (context, light, dark) => MaterialApp(
         title: 'Relógio',
