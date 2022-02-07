@@ -180,7 +180,7 @@ class _NormalOrSmallFab extends StatelessWidget {
       );
     }
     if (isSmall) {
-      return MD3FloatingActionButton.small(
+      return MD3FloatingActionButton(
         key: _kFabKey,
         onPressed: onPressed,
         fabColorScheme: MD3FABColorScheme.tertiary,
@@ -189,6 +189,9 @@ class _NormalOrSmallFab extends StatelessWidget {
     }
     return MD3FloatingActionButton(
       key: _kFabKey,
+      style: ButtonStyle(
+        fixedSize: MaterialStateProperty.all(Size.fromHeight(72)),
+      ),
       onPressed: onPressed,
       fabColorScheme: MD3FABColorScheme.tertiary,
       child: child,
