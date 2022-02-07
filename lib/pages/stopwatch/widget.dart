@@ -345,9 +345,9 @@ class _StopwatchDurationText extends StatelessWidget {
       ),
     );
     final textStyle = adaptativeTextStyle.resolveTo(context.deviceType);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+    return BaselineColumn(
       crossAxisAlignment: CrossAxisAlignment.end,
+      textBaseline: TextBaseline.alphabetic,
       children: [
         DurationWidget(
           duration: duration.toDuration(),
@@ -357,7 +357,7 @@ class _StopwatchDurationText extends StatelessWidget {
         NumberText(
           (duration.miliseconds ~/ 10).clamp(0, 99).toString().padLeft(2, '0'),
           style: context.textTheme.displayLarge,
-        )
+        ),
       ],
     );
   }
