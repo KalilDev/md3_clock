@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/utils/theme.dart';
@@ -6,6 +7,87 @@ import 'package:value_notifier/value_notifier.dart';
 
 import '../../pages/home/navigation_delegate.dart';
 import 'controller.dart';
+
+class _VerticalFabGroupLayout extends StatelessWidget {
+  const _VerticalFabGroupLayout({
+    Key? key,
+    required this.left,
+    required this.center,
+    required this.right,
+  }) : super(key: key);
+  final Widget left;
+  final Widget center;
+  final Widget right;
+
+  Widget _buildLayout(
+    BuildContext context,
+    BoxConstraints constraints,
+  ) {
+    final spacingHeight = constraints.maxHeight / 8;
+    final spacing = SizedBox(height: spacingHeight);
+    final children = [left, spacing, center, spacing, right];
+    return Column(
+      children: children,
+      verticalDirection: VerticalDirection.up,
+      mainAxisAlignment: MainAxisAlignment.center,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(builder: _buildLayout);
+}
+
+class _HorizontalFabGroupLayout extends StatelessWidget {
+  const _HorizontalFabGroupLayout({
+    Key? key,
+    required this.left,
+    required this.center,
+    required this.right,
+    required this.isStarted,
+  }) : super(key: key);
+  final Widget left;
+  final Widget center;
+  final Widget right;
+  final ValueListenable<bool> isStarted;
+
+  Widget _spacing(
+    BuildContext context,
+    double spacing,
+    double startedSpacing,
+  ) =>
+      isStarted.buildView(
+        builder: (context, isStarted, _) => TweenAnimationBuilder<double>(
+          tween: Tween(end: isStarted ? startedSpacing : spacing),
+          duration: kFabAnimationDuration,
+          builder: (context, spacerWidth, _) => SizedBox.square(
+            dimension: spacerWidth,
+          ),
+        ),
+      );
+
+  Widget _buildLayout(
+    BuildContext context,
+    BoxConstraints constraints,
+  ) {
+    final spacing = constraints.maxWidth / 8;
+    final startedSpacing = constraints.maxWidth / 10;
+
+    final children = [
+      left,
+      _spacing(context, spacing, startedSpacing),
+      center,
+      _spacing(context, spacing, startedSpacing),
+      right,
+    ];
+    return Row(
+      children: children,
+      mainAxisAlignment: MainAxisAlignment.center,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(builder: _buildLayout);
+}
 
 class FABGroup extends StatelessWidget {
   const FABGroup({
@@ -23,14 +105,12 @@ class FABGroup extends StatelessWidget {
   static const double kMaxVerticalLayoutLargeWidth = 152;
   static const double kMaxVerticalLayoutSmallWidth = 72;
 
-  Widget _centerFab(BuildContext context) {
-    return controller.centerState.buildView(
-      builder: (context, state, _) => _CenterFab(
-        state: state,
-        onPressed: controller.onCenter,
-      ),
-    );
-  }
+  Widget _centerFab(BuildContext context) => controller.centerState.buildView(
+        builder: (context, state, _) => _CenterFab(
+          state: state,
+          onPressed: controller.onCenter,
+        ),
+      );
 
   Widget _leftFab(BuildContext context) => controller.showLeftIcon.buildView(
         builder: (context, showLeftIcon, _) => _NormalOrSmallFab(
@@ -50,44 +130,26 @@ class FABGroup extends StatelessWidget {
         ),
       );
 
-  Widget _spacing(BuildContext context) {
-    if (useVerticalFab(context)) {
-      return const SizedBox(height: 24);
-    }
-    return controller.centerState.buildView(
-      builder: (context, isStarted, _) => TweenAnimationBuilder<double>(
-        tween: Tween(end: isStarted == true ? 36 : 48),
-        duration: kFabAnimationDuration,
-        builder: (context, spacerWidth, _) => SizedBox.square(
-          dimension: spacerWidth,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final children = [
-      _leftFab(context),
-      _spacing(context),
-      _centerFab(context),
-      _spacing(context),
-      _rightFab(context),
-    ];
+    final left = _leftFab(context),
+        center = _centerFab(context),
+        right = _rightFab(context);
     if (useVerticalFab(context)) {
-      return Column(
-        children: children,
-        verticalDirection: VerticalDirection.up,
-        mainAxisAlignment: MainAxisAlignment.center,
+      return _VerticalFabGroupLayout(
+        left: left,
+        center: center,
+        right: right,
       );
     }
-    return FittedBox(
-      fit: BoxFit.contain,
-      child: Row(
-        children: children,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-      ),
+    return _HorizontalFabGroupLayout(
+      left: left,
+      center: center,
+      right: right,
+      isStarted: controller.centerState.map(const {
+        CenterFABState.pause,
+        CenterFABState.stop,
+      }.contains),
     );
   }
 }
@@ -168,7 +230,9 @@ class _NormalOrLargeFab extends StatelessWidget {
     return MD3FloatingActionButton(
       onPressed: onPressed,
       colorScheme: primarySchemeOf(context),
-      style: style,
+      style: ButtonStyle(
+        fixedSize: MaterialStateProperty.all(Size.fromHeight(72)),
+      ).merge(style),
       child: child,
     );
   }
@@ -193,7 +257,7 @@ class _CenterFab extends StatelessWidget {
     if (isLarge) {
       targetFabWidth = isStarted ? 152 : 96;
     } else {
-      targetFabWidth = isStarted ? 72 : 56;
+      targetFabWidth = isStarted ? 96 : 72;
     }
     return TweenAnimationBuilder<double>(
       // Restart the tween on changing the layout
@@ -212,10 +276,14 @@ class _CenterFab extends StatelessWidget {
           isStarted
               ? RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
-                    isLarge ? 24 : 16,
+                    isLarge ? 32 : 16,
                   ),
                 )
-              : null,
+              : RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    isLarge ? 48 : 36,
+                  ),
+                ),
         ),
       );
 
@@ -237,7 +305,7 @@ class _CenterFab extends StatelessWidget {
     if (state == CenterFABState.hidden) {
       return SizedBox.square(
         key: const ObjectKey(false),
-        dimension: isLarge ? 96 : 56,
+        dimension: isLarge ? 96 : 72,
       );
     }
 

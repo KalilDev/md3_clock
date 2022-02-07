@@ -151,20 +151,10 @@ class _HomePageLandscapeLayout extends StatelessWidget {
                   child: child,
                 ),
               ),
-              if (oneFourth >= maxSize ||
-                  minSizeWithEndSpacing >= oneFourth) ...[
-                SizedBox(
-                  width: min(maxSize, oneFourth),
-                  child: Center(child: floatingActionButton),
-                ),
-              ] else ...[
-                SizedBox(width: oneFourth - minSizeWithEndSpacing),
-                SizedBox(
-                  width: 56,
-                  child: Center(child: floatingActionButton),
-                ),
-                const SizedBox(width: spacing),
-              ]
+              SizedBox(
+                width: oneFourth,
+                child: Center(child: floatingActionButton),
+              )
             ],
           );
         },
