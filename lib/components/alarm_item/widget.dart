@@ -47,6 +47,7 @@ class _AlarmItemBasicSection extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            const SizedBox(width: 2.0),
             _ActivatableDefaultTextStyle(
               isActive: controller.active,
               activeTextStyle: context.textTheme.bodyMedium.copyWith(
@@ -68,7 +69,6 @@ class _AlarmItemBasicSection extends StatelessWidget {
                 onChanged: (v) => controller.setActive(v),
               ),
             ),
-            const SizedBox(width: 2),
           ],
         ),
       );
@@ -145,7 +145,7 @@ class _AlarmItemTimeText extends StatelessWidget {
         child: _ActivatableDefaultTextStyle(
           activeTextStyle: style.copyWith(
             color: context.colorScheme.onSurface,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w500,
           ),
           inactiveTextStyle: style.copyWith(
             color: context.colorScheme.outline,
@@ -196,7 +196,7 @@ class _ListTile extends StatelessWidget {
     );
     final iconTheme = IconThemeData(
       opacity: 1,
-      color: context.colorScheme.onSurface,
+      color: context.colorScheme.onSurfaceVariant,
       size: _kListTileIconSize,
     );
     return ListTile(
@@ -207,7 +207,7 @@ class _ListTile extends StatelessWidget {
               child: leading!,
             ),
       minLeadingWidth: 36,
-      horizontalTitleGap: 4,
+      horizontalTitleGap: 7,
       title: DefaultTextStyle.merge(
         style: titleStyle,
         child: title,
@@ -471,13 +471,15 @@ class _AlarmItemMarker extends StatelessWidget {
             )
           : ListTile(
               contentPadding: const EdgeInsets.only(left: _kExtraLeftPadding),
-              dense: true,
-              title: Text(
-                marker,
-                style: context.textTheme.titleSmall.copyWith(
-                  fontWeight: FontWeight.normal,
+              title: _ActivatableDefaultTextStyle(
+                isActive: controller.active,
+                activeTextStyle: TextStyle(
                   color: context.colorScheme.onSurface,
                 ),
+                inactiveTextStyle: TextStyle(
+                  color: context.colorScheme.outline,
+                ),
+                child: Text(marker, style: context.textTheme.titleSmall),
               ),
             );
     } else {
@@ -581,8 +583,9 @@ class AlarmItemCard extends StatelessWidget {
           fit: StackFit.passthrough,
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: useSmallPadding ? 16 : 36,
+              padding: EdgeInsets.only(
+                left: useSmallPadding ? 16 - 4 : 36 - 4,
+                right: useSmallPadding ? 16 - 4 : 36 - 4,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
