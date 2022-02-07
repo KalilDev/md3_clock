@@ -1,10 +1,11 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/utils/utils.dart';
-import 'package:md3_clock/widgets/prototype_text/raw.dart';
 
 import '../model/duration_components.dart';
-import 'prototype_text/widget.dart';
+import '../typography/typography.dart';
 
 class DurationWidget extends StatelessWidget {
   const DurationWidget({
@@ -99,31 +100,10 @@ class TimeComponentsWidget extends StatelessWidget {
   ) =>
       pad ? _valueToPaddedString(digits) : digits.toString();
 
-  static String _referenceDigits(
-    int digits,
-    bool pad,
-  ) {
-    final length = pad ? 2 : digits.toString().length;
-    return '0' * length;
-  }
-
   static const _kSeparator = ':';
 
   static TextStyle defaultStyleFor(BuildContext context) =>
       context.textTheme.displayLarge;
-
-  static const _kDigits = {
-    '0',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -139,64 +119,32 @@ class TimeComponentsWidget extends StatelessWidget {
           (_) => _kSeparator,
         ))
         .join();
-    final referenceText = isNegativeText
-        .followedBy(Iterable.generate(
-          components.length,
-          (i) => _referenceDigits(
-            components[i],
-            padComponent[i],
-          ),
-        ).interleaved(
-          (_) => _kSeparator,
-        ))
-        .join();
-    return PrototypeText(
-      reference: referenceText,
-      target: text,
-      initialCharacterSet: _kDigits,
+    return TabularNumberText(
+      text,
       style: numberStyle ?? defaultStyleFor(context),
     );
   }
 }
 
-class NumberText extends StatelessWidget {
-  const NumberText(
-    this.number, {
+class TabularNumberText extends StatelessWidget {
+  const TabularNumberText(
+    this.data, {
     Key? key,
     this.style,
   }) : super(key: key);
-  final String number;
+  final String data;
   final TextStyle? style;
-
-  static String _referenceDigits(
-    String digits,
-  ) {
-    final length = digits.length;
-    return '0' * length;
-  }
-
-  static const _kDigits = {
-    '0',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-  };
 
   @override
   Widget build(BuildContext context) {
-    var text = number.toString();
-    final referenceText = _referenceDigits(text);
-    return PrototypeText(
-      reference: referenceText,
-      target: text,
-      initialCharacterSet: _kDigits,
-      style: style,
+    return Text(
+      data,
+      style: TextStyle(
+        fontFeatures: [
+          ...?style?.fontFeatures,
+          const FontFeature.tabularFigures(),
+        ],
+      ).merge(style),
     );
   }
 }

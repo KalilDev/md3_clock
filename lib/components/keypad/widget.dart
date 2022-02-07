@@ -127,7 +127,7 @@ class TimeKeypadVisor extends StatelessWidget {
   final ValueListenable<TimeKeypadResult> result;
 
   static const _h = SizedBox(width: 16);
-  Widget _displayText(BuildContext context, String text) => NumberText(
+  Widget _displayText(BuildContext context, String text) => TabularNumberText(
         text,
         style: context.textTheme.displayLarge,
       );

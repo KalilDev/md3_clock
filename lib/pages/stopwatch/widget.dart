@@ -17,8 +17,6 @@ import 'package:md3_clock/widgets/blinking.dart';
 import 'package:md3_clock/widgets/clock_ring.dart';
 import 'package:md3_clock/widgets/duration.dart';
 import 'package:md3_clock/widgets/fab_safe_area.dart';
-import 'package:md3_clock/widgets/prototype_text/raw.dart';
-import 'package:md3_clock/widgets/prototype_text/widget.dart';
 import 'package:value_notifier/value_notifier.dart';
 
 import '../../model/lap.dart';
@@ -77,16 +75,8 @@ class _LapDurationText extends StatelessWidget {
           milisWidth,
         ),
     ];
-    final tgtText = texts.join();
-    final refText =
-        tgtText.replaceAll(numberRegex, '0').replaceAll(kComma, ' ');
-    return PrototypeText(
-      target: tgtText,
-      reference: refText,
-    );
+    return TabularNumberText(texts.join());
   }
-
-  static final numberRegex = RegExp('[0-9]');
 }
 
 extension on StopwatchPageController {
@@ -178,7 +168,7 @@ class _Lap extends StatelessWidget {
         const Spacer(),
         Text('Nº', style: lapNumberStyle),
         const SizedBox(width: _kLapNumberSepWidth),
-        NumberText(
+        TabularNumberText(
           lap.number.toString().padLeft(lapNumberWidth, '0'),
           style: lapNumberStyle,
         ),
@@ -348,7 +338,7 @@ class _StopwatchDurationText extends StatelessWidget {
           alwaysPadSeconds: true,
           numberStyle: textStyle,
         ),
-        NumberText(
+        TabularNumberText(
           (duration.miliseconds ~/ 10).clamp(0, 99).toString().padLeft(2, '0'),
           style: context.textTheme.displayLarge,
         ),
