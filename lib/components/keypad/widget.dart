@@ -223,25 +223,40 @@ class TimeKeypadAndVisor extends StatelessWidget {
         ],
       );
 
-  Widget _buildLandscape(BuildContext context) => Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Flexible(
-            flex: 3,
-            child: FittedBox(
-              fit: BoxFit.contain,
-              child: TimeKeypadVisor(result: controller.result),
+  Widget _buildLandscape(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              flex: 3,
+              child: Column(
+                children: [
+                  Spacer(flex: 3),
+                  Expanded(
+                    flex: 5,
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: TimeKeypadVisor(result: controller.result),
+                      ),
+                    ),
+                  ),
+                  Spacer(flex: 3),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: TimeKeypad(
-              controller: controller,
-              isPortrait: false,
+            Expanded(
+              flex: 2,
+              child: TimeKeypad(
+                controller: controller,
+                isPortrait: false,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
 
   @override
