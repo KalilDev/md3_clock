@@ -33,17 +33,14 @@ class _DimissedCityCard extends StatelessWidget {
           stateLayerOpacity: context.stateOverlayOpacity,
         ),
         color: context.colorScheme.errorScheme,
-        child: SizedBox(
-          height: _CityCard.kHeight,
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Row(
-              mainAxisAlignment:
-                  startToEnd ? MainAxisAlignment.start : MainAxisAlignment.end,
-              children: [
-                Icon(Icons.delete_outlined),
-              ],
-            ),
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Row(
+            mainAxisAlignment:
+                startToEnd ? MainAxisAlignment.start : MainAxisAlignment.end,
+            children: [
+              Icon(Icons.delete_outlined),
+            ],
           ),
         ),
       );
@@ -57,8 +54,6 @@ class _CityCard extends StatelessWidget {
   }) : super(key: key);
   final CityViewModel model;
   final ValueChanged<DismissDirection> onDelete;
-
-  static const kHeight = 96.0;
 
   static String _offsetToString(Duration offset) {
     final components = DurationComponents.fromDuration(offset);
@@ -75,13 +70,13 @@ class _CityCard extends StatelessWidget {
         children: [
           Text(
             model.city.name,
-            style: context.textTheme.bodyLarge.copyWith(
+            style: context.textTheme.titleMedium.copyWith(
               color: context.colorScheme.onSurface,
             ),
           ),
           Text(
             _offsetToString(model.timeZoneOffsetLocal),
-            style: context.textTheme.bodyMedium.copyWith(
+            style: context.textTheme.titleSmall.copyWith(
               color: context.colorScheme.onSurfaceVariant,
             ),
           )
@@ -92,19 +87,40 @@ class _CityCard extends StatelessWidget {
         style: TextStyle(color: context.colorScheme.onSurface),
         child: TimeOfDayWidget(
           timeOfDay: model.currentOffsetTime,
-          numberStyle: context.textTheme.displaySmall,
+          numberStyle: context.textTheme.displayMedium,
         ),
       );
 
+  Widget _buildInnerCardPortraitBody(BuildContext context) => Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _cityNameAndOffset(context),
+          const Spacer(),
+          _timeAtCity(context),
+        ],
+      );
+
+  Widget _buildInnerCardLandscapeBody(BuildContext context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _timeAtCity(context),
+          _cityNameAndOffset(context),
+        ],
+      );
+
   Widget _buildInnerCard(BuildContext context) => FilledCard(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _cityNameAndOffset(context),
-            const Spacer(),
-            _timeAtCity(context),
-          ],
+        style: CardStyle(
+          padding: MaterialStateProperty.all(
+            const EdgeInsets.symmetric(
+              vertical: 24.0,
+              horizontal: 16,
+            ),
+          ),
         ),
+        child: isPortrait(context)
+            ? _buildInnerCardPortraitBody(context)
+            : _buildInnerCardLandscapeBody(context),
       );
 
   @override
@@ -116,7 +132,6 @@ class _CityCard extends StatelessWidget {
           key: ObjectKey(model.city),
           onDismissed: onDelete,
           child: Container(
-            height: kHeight,
             color: context.colorScheme.errorContainer,
             child: _buildInnerCard(context),
           ),
@@ -157,7 +172,11 @@ class _ClockPortraitBody extends StatelessWidget {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24.0),
+              padding: const EdgeInsets.only(
+                left: 8,
+                right: 8,
+                bottom: 25.0 + 14,
+              ),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: CurrentTime(
@@ -304,6 +323,11 @@ class ClockPageFab extends StatelessWidget {
       );
     }
     return MD3FloatingActionButton(
+      style: ButtonStyle(
+        fixedSize: MaterialStateProperty.all(
+          const Size.square(72),
+        ),
+      ),
       colorScheme: primarySchemeOf(context),
       onPressed: onPressed,
       child: child,
