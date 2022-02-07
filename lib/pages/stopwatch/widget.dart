@@ -325,26 +325,29 @@ class _StopwatchDurationText extends StatelessWidget {
         ),
       );
 
-  Widget _body(BuildContext context, DurationComponents duration) {
-    final adaptativeTextStyle =
-        MD3ClockTypography.instance.clockTextTheme.largeTimeDisplay;
-    final textStyle = adaptativeTextStyle.resolveTo(context.deviceType);
-    return BaselineColumn(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        DurationWidget(
-          duration: duration.toDuration(),
-          alwaysPadSeconds: true,
-          numberStyle: textStyle,
-        ),
-        TabularNumberText(
-          (duration.miliseconds ~/ 10).clamp(0, 99).toString().padLeft(2, '0'),
-          style: context.textTheme.displayLarge,
-        ),
-      ],
-    );
-  }
+  Widget _body(BuildContext context, DurationComponents duration) =>
+      BaselineColumn(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          DurationWidget(
+            duration: duration.toDuration(),
+            alwaysPadSeconds: true,
+            numberStyle: MD3ClockTypography
+                .instance.clockTextTheme.stopwatchDisplay
+                .resolveTo(context.deviceType),
+          ),
+          TabularNumberText(
+            (duration.miliseconds ~/ 10)
+                .clamp(0, 99)
+                .toString()
+                .padLeft(2, '0'),
+            style: MD3ClockTypography
+                .instance.clockTextTheme.stopwatchMilisDisplay
+                .resolveTo(context.deviceType),
+          ),
+        ],
+      );
 }
 
 class _ClockRing extends StatelessWidget {
@@ -558,7 +561,7 @@ class StopwatchPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              width: MediaQuery.of(context).size.width * 2 / 3,
+              width: 360,
               child: _ClockRing(
                 controller: controller,
                 child: Center(
