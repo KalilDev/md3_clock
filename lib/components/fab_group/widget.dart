@@ -54,8 +54,9 @@ class _HorizontalFabGroupLayout extends StatelessWidget {
     BuildContext context,
     double spacing,
     double startedSpacing,
+    ValueListenable<bool> isStarted,
   ) =>
-      isStarted.buildView(
+      isStarted.build(
         builder: (context, isStarted, _) => TweenAnimationBuilder<double>(
           tween: Tween(end: isStarted ? startedSpacing : spacing),
           duration: kFabAnimationDuration,
@@ -72,16 +73,21 @@ class _HorizontalFabGroupLayout extends StatelessWidget {
     final spacing = constraints.maxWidth / 8;
     final startedSpacing = constraints.maxWidth / 10;
 
-    final children = [
-      left,
-      _spacing(context, spacing, startedSpacing),
-      center,
-      _spacing(context, spacing, startedSpacing),
-      right,
-    ];
-    return Row(
-      children: children,
-      mainAxisAlignment: MainAxisAlignment.center,
+    // Needed because we own [this.isStarted], but we need 2 views to it, but
+    // creating them directly without handling the lifecycle of [this.isStarted]
+    // would leak it.
+    return ValueListenableOwnerBuilder<bool>(
+      valueListenable: isStarted,
+      builder: (context, isStarted) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          left,
+          _spacing(context, spacing, startedSpacing, isStarted()),
+          center,
+          _spacing(context, spacing, startedSpacing, isStarted()),
+          right,
+        ],
+      ),
     );
   }
 
@@ -105,14 +111,14 @@ class FABGroup extends StatelessWidget {
   static const double kMaxVerticalLayoutLargeWidth = 152;
   static const double kMaxVerticalLayoutSmallWidth = 72;
 
-  Widget _centerFab(BuildContext context) => controller.centerState.buildView(
+  Widget _centerFab(BuildContext context) => controller.centerState.build(
         builder: (context, state, _) => _CenterFab(
           state: state,
           onPressed: controller.onCenter,
         ),
       );
 
-  Widget _leftFab(BuildContext context) => controller.showLeftIcon.buildView(
+  Widget _leftFab(BuildContext context) => controller.showLeftIcon.build(
         builder: (context, showLeftIcon, _) => _NormalOrSmallFab(
           showPlaceholder: !showLeftIcon,
           isSmall: !useLargeFab(context),
@@ -121,7 +127,7 @@ class FABGroup extends StatelessWidget {
         ),
       );
 
-  Widget _rightFab(BuildContext context) => controller.showRightIcon.buildView(
+  Widget _rightFab(BuildContext context) => controller.showRightIcon.build(
         builder: (context, showRightIcon, _) => _NormalOrSmallFab(
           showPlaceholder: !showRightIcon,
           isSmall: !useLargeFab(context),
