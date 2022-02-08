@@ -166,7 +166,7 @@ class TimeKeypadVisor extends StatelessWidget {
       );
   static String _valueToString(int value) => value.toString().padLeft(2, '0');
   @override
-  Widget build(BuildContext context) => result.buildView(
+  Widget build(BuildContext context) => result.build(
         builder: (context, result, _) => _buildVisor(context, result),
       );
 }
