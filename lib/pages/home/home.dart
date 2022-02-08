@@ -31,23 +31,23 @@ class _ClockPageSpec {
   String get title => item.labelText;
 }
 
-class ClockHomePageController extends IDisposableBase {
+class ClockHomePageController extends ControllerBase {
   final ICreateTickers _vsync;
-  final ValueNotifier<int> _index = ValueNotifier(0);
-  late final IDisposableValueListenable<_ClockPageSpec> currentPage =
-      _index.view().map((index) => pages[index]);
-
+  final ValueNotifier<int> __index = ValueNotifier(0);
   late final List<NavigationItem> _navigationItems =
       pages.map((e) => e.item).toList();
 
-  late final IDisposableValueListenable<MD3NavigationSpec> spec =
-      _index.view().map(
-            (index) => MD3NavigationSpec(
-              items: _navigationItems,
-              onChanged: setIndex,
-              selectedIndex: index,
-            ),
-          );
+  ValueListenable<int> get _index => __index.view();
+  ValueListenable<_ClockPageSpec> get currentPage =>
+      _index.map((index) => pages[index]);
+
+  ValueListenable<MD3NavigationSpec> get spec => _index.map(
+        (index) => MD3NavigationSpec(
+          items: _navigationItems,
+          onChanged: setIndex,
+          selectedIndex: index,
+        ),
+      );
 
   final alarmPageController = AlarmPageController();
   late final clockPageController = ClockPageController(
@@ -104,13 +104,18 @@ class ClockHomePageController extends IDisposableBase {
 
   ClockHomePageController(this._vsync);
 
-  void setIndex(int i) => _index.value = i;
+  void setIndex(int i) => __index.value = i;
 
   @override
   void dispose() {
-    _index.dispose();
-    currentPage.dispose();
-    alarmPageController.dispose();
+    IDisposable.disposeAll([
+      __index,
+      _vsync,
+      alarmPageController,
+      clockPageController,
+      timerPageController,
+      stopwatchPageController,
+    ]);
     super.dispose();
   }
 }
@@ -126,24 +131,18 @@ class _ClockHomePageState extends State<ClockHomePage>
     with SingleTickerProviderStateMixin {
   late final vsync = FlutterTickerFactory(vsync: this);
   late final controller = ClockHomePageController(vsync);
-  late final _fabNotifier =
-      controller.currentPage.view().map((page) => page.floatingActionButton);
-  void initState() {
-    super.initState();
-    _fabNotifier.addListener(_fabChanged);
-  }
-
-  void _fabChanged() {
-    setState(() {});
-  }
+  final fabKey = GlobalKey();
 
   void dispose() {
-    _fabNotifier.dispose();
     vsync.dispose();
+    controller.dispose();
     super.dispose();
   }
 
-  Widget? _fab(BuildContext context) => _fabNotifier.value;
+  // TODO: the ownership of the fab is not correct. fix it.
+  Widget _fab() => controller.currentPage
+      .map((page) => page.floatingActionButton ?? SizedBox())
+      .buildView(key: fabKey);
 
   void _onMenuDestination(BuildContext context, MenuDestination destination) {
     print('TODO');
@@ -167,32 +166,35 @@ class _ClockHomePageState extends State<ClockHomePage>
             )
           : null);
 
-  PreferredSizeWidget _appBar(BuildContext context) {
-    return MD3SmallAppBar(
-      title: controller.currentPage.buildView(
-        builder: (context, page, _) => Text(page.title),
-      ),
-      // Apply the same margin as the scaffold body and remove the leading
-      // placeholder, so that the appbar title is aligned with the body
-      // elements.
-      implyLeadingPlaceholder: false,
-      titleSpacing: 24,
-      /*MD3ScaffoldBody.marginFor(
+  PreferredSizeWidget _appBar() => MD3SmallAppBar(
+        title: controller.currentPage.build(
+          builder: (context, page, _) => Text(page.title),
+        ),
+        // Apply the same margin as the scaffold body and remove the leading
+        // placeholder, so that the appbar title is aligned with the body
+        // elements.
+        implyLeadingPlaceholder: false,
+        titleSpacing: 24,
+        /*MD3ScaffoldBody.marginFor(
         MediaQuery.of(context).size.width,
         context.sizeClass,
         minMargin: ClockNavigationDelegate.kBodyMinimumMargin,
         maxMargin: ClockNavigationDelegate.kBodyMaximumMargin,
       ),*/
-      actions: [
-        Builder(
-          builder: (context) => IconButton(
-            onPressed: () => _openPopupMenuFrom(context),
-            icon: const Icon(Icons.more_vert),
-          ),
-        )
-      ],
-    );
-  }
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              onPressed: () => _openPopupMenuFrom(context),
+              icon: const Icon(Icons.more_vert),
+            ),
+          )
+        ],
+      );
+
+  late final navigationDelegate = ClockNavigationDelegate(
+    floatingActionButton: _fab(),
+    appBar: _appBar(),
+  );
 
   @override
   Widget build(BuildContext context) => MD3FloatingActionButtonTheme(
@@ -203,14 +205,11 @@ class _ClockHomePageState extends State<ClockHomePage>
             ),
           ),
         ),
-        child: controller.spec.buildView(
+        child: controller.spec.build(
           builder: (context, spec, _) => MD3NavigationScaffold(
-            delegate: ClockNavigationDelegate(
-              floatingActionButton: _fab(context),
-              appBar: _appBar(context),
-            ),
+            delegate: navigationDelegate,
             spec: spec,
-            body: controller.currentPage.buildView(
+            body: controller.currentPage.build(
               builder: (context, page, _) => FadeThroughSwitcher(
                 child: KeyedSubtree(
                   key: ObjectKey(page),
