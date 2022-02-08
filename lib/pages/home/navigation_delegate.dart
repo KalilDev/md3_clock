@@ -12,7 +12,7 @@ bool useVerticalFab(BuildContext context) =>
 
 class ClockNavigationDelegate extends MD3NavigationDelegate {
   final PreferredSizeWidget appBar;
-  final Widget? floatingActionButton;
+  final Widget floatingActionButton;
 
   ClockNavigationDelegate({
     required this.floatingActionButton,
@@ -54,7 +54,7 @@ class ClockNavigationDelegate extends MD3NavigationDelegate {
                   MD3MaterialStateElevation.resolveWith(
                     (states) => states.contains(MaterialState.scrolledUnder)
                         ? context.elevation.level2
-                        : context.elevation.level1,
+                        : context.elevation.level2,
                   ),
                 ).resolve({
                   if (isScrolledUnder) MaterialState.scrolledUnder,
@@ -69,18 +69,16 @@ class ClockNavigationDelegate extends MD3NavigationDelegate {
       return MD3AdaptativeScaffoldSpec(
         appBar: useSmallAppBars ? null : appBar,
         bottomNavigationBar: bottomNavigationBar,
-        body: floatingActionButton != null
-            ? MD3ScaffoldBody.noMargin(
-                minimumMargin: kBodyMinimumMargin,
-                maximumMargin: kBodyMaximumMargin,
-                child: SafeArea(
-                  child: _HomePageLandscapeLayout(
-                    floatingActionButton: floatingActionButton!,
-                    child: body,
-                  ),
-                ),
-              )
-            : SafeArea(child: body),
+        body: MD3ScaffoldBody.noMargin(
+          minimumMargin: kBodyMinimumMargin,
+          maximumMargin: kBodyMaximumMargin,
+          child: SafeArea(
+            child: _HomePageLandscapeLayout(
+              floatingActionButton: floatingActionButton,
+              child: body,
+            ),
+          ),
+        ),
       );
     }
     return MD3AdaptativeScaffoldSpec(
