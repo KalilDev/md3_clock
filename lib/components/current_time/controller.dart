@@ -11,7 +11,7 @@ class NextAlarmViewModel {
   NextAlarmViewModel(this.weekday, this.time);
 }
 
-class CurrentTimeControler extends ControllerBase {
+class CurrentTimeControler extends ControllerBase<CurrentTimeControler> {
   ValueNotifier<DateTime> _localTime;
   ValueNotifier<NextAlarmViewModel?> _nextAlarm;
 

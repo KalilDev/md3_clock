@@ -15,7 +15,8 @@ enum TimerSectionState {
   beeping,
 }
 
-class _AddSectionController extends ControllerBase with IConnectToAnFABGroup {
+class _AddSectionController extends ControllerBase<_AddSectionController>
+    with IConnectToAnFABGroup {
   final ValueNotifier<bool> _canCancel;
   final EventNotifier<TimeKeypadResult> _didStart = EventNotifier();
   final ActionNotifier _didCancel = ActionNotifier();
@@ -93,7 +94,8 @@ class _ActiveTimerSectionInfo {
   }
 }
 
-class TimerSectionController extends ControllerBase with IConnectToAnFABGroup {
+class TimerSectionController extends ControllerBase<TimerSectionController>
+    implements IConnectToAnFABGroup {
   final ValueNotifier<TimerSectionState> _state;
   final Duration _timerDuration;
   final ValueNotifier<Duration> _elapsedTimerDuration;
@@ -268,7 +270,7 @@ class TimerSectionController extends ControllerBase with IConnectToAnFABGroup {
   }
 }
 
-class TimerPageController extends ControllerBase
+class TimerPageController extends ControllerBase<TimerPageController>
     with FABGroupConnectionManagerMixin {
   final ListValueNotifier<TimerSectionController> _timers;
   final _AddSectionController _addSectionController;

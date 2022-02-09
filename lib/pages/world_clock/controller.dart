@@ -77,7 +77,7 @@ class CityViewModel {
       );
 }
 
-class ClockPageController extends ControllerBase {
+class ClockPageController extends ControllerBase<ClockPageController> {
   final SortedAnimatedListController<CityViewModel> clocksList;
   final ITick _ticker;
   final CurrentTimeControler currentTimeController;

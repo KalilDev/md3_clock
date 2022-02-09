@@ -4,7 +4,8 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:value_notifier/value_notifier.dart';
 
-class SortedAnimatedListController<T> extends ControllerBase {
+class SortedAnimatedListController<T>
+    extends ControllerBase<SortedAnimatedListController<T>> {
   late final ListValueNotifier<T> _values;
   final EventNotifier<IsMoveStepAndValue<IndexAndValue<T>>> _didRemoveItem =
       EventNotifier();
@@ -108,7 +109,8 @@ class SortedAnimatedListController<T> extends ControllerBase {
       return false;
     }
     _removeValue(value, true);
-    _insertValue(value, sortedItemIndex.clamp(0, max(0, _values.length - 1)), true);
+    _insertValue(
+        value, sortedItemIndex.clamp(0, max(0, _values.length - 1)), true);
     return true;
   }
 

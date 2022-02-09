@@ -11,7 +11,7 @@ import '../../model/weekday.dart';
 
 const kDefaultAlarm = Alarm('BusyBugs', true, AlarmSource.sounds);
 
-class AlarmPageController extends ControllerBase {
+class AlarmPageController extends ControllerBase<AlarmPageController> {
   late final SortedAnimatedListController<AlarmItemController> _itemControllers;
 
   AlarmPageController()

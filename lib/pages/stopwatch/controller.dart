@@ -25,7 +25,7 @@ enum StopwatchState {
   paused,
 }
 
-class StopwatchPageController extends ControllerBase {
+class StopwatchPageController extends ControllerBase<StopwatchPageController> {
   final ValueNotifier<StopwatchState> _state;
   final ListValueNotifier<Lap> _laps;
   final ValueNotifier<Duration> _totalElapsedTime;

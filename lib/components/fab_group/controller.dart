@@ -104,7 +104,7 @@ mixin FABGroupConnectionManagerMixin {
   }
 }
 
-class FABGroupController extends ControllerBase {
+class FABGroupController extends ControllerBase<FABGroupController> {
   final ValueNotifier<bool> _showLeftIcon;
   final ValueNotifier<CenterFABState> _centerState;
   final ValueNotifier<bool> _showRightIcon;

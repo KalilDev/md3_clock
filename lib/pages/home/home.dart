@@ -31,7 +31,7 @@ class _ClockPageSpec {
   String get title => item.labelText;
 }
 
-class ClockHomePageController extends ControllerBase {
+class ClockHomePageController extends ControllerBase<ClockHomePageController> {
   final ICreateTickers _vsync;
   final ValueNotifier<int> __index = ValueNotifier(0);
   late final List<NavigationItem> _navigationItems =

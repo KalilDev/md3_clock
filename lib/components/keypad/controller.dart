@@ -41,7 +41,7 @@ class TimeKeypadResult {
       );
 }
 
-class TimeKeypadController extends ControllerBase {
+class TimeKeypadController extends ControllerBase<TimeKeypadController> {
   final ValueNotifier<TimeKeypadResult> _result;
 
   TimeKeypadController.zero() : _result = ValueNotifier(TimeKeypadResult.zero);

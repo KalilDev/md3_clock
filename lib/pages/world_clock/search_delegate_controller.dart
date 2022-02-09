@@ -38,7 +38,8 @@ class DummyQueryFetcher extends IFetchCityQueries {
           values.take(Random().nextInt(values.length + 1)).toList()..shuffle());
 }
 
-class WorldClockSearchController extends ControllerBase {
+class WorldClockSearchController
+    extends ControllerBase<WorldClockSearchController> {
   final ValueNotifier<String> _queryString;
   final IFetchCityQueries queryFetcher;
   final ProxyValueListenable<AsyncSnapshot<List<City>>> _connectedQueryFetch =

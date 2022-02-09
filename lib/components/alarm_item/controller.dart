@@ -5,7 +5,7 @@ import 'package:value_notifier/value_notifier.dart';
 import '../../model/alarm.dart';
 import '../../model/weekday.dart';
 
-class AlarmItemController extends ControllerBase {
+class AlarmItemController extends ControllerBase<AlarmItemController> {
   final ValueNotifier<TimeOfDay> _time;
   final ValueNotifier<String> _marker;
   // TODO: null when default and on the view get it from somewhere.
