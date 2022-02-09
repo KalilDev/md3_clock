@@ -259,6 +259,10 @@ class TimerSectionController extends ControllerBase<TimerSectionController>
   void _onIsOvershooting(bool isOvershooting) {
     if (isOvershooting) {
       _setState(TimerSectionState.beeping);
+      return;
+    }
+    if (_state.value == TimerSectionState.beeping) {
+      _setState(TimerSectionState.running);
     }
   }
 
