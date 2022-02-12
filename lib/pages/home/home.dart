@@ -85,8 +85,9 @@ class ClockHomePageController extends ControllerBase<ClockHomePageController> {
     ),
     _ClockPageSpec(
       item: NavigationItem(labelText: 'Timer', icon: const Icon(Icons.stop)),
-      body: TimerPage(controller: timerPageController),
-      floatingActionButton: TimerPageFab(controller: timerPageController),
+      body: TimerPage(controller: timerPageController.handle),
+      floatingActionButton:
+          TimerPageFab(controller: timerPageController.handle),
     ),
     _ClockPageSpec(
       item: NavigationItem(

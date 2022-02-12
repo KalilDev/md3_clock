@@ -5,7 +5,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:material_widgets/material_widgets.dart';
+import 'package:material_widgets/material_widgets.dart' hide Handle;
 import 'package:md3_clock/components/fab_group/controller.dart';
 import 'package:md3_clock/components/fab_group/widget.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
@@ -63,19 +63,21 @@ class __TimersViewState extends State<_TimersView> {
     widget.controller.onPageChange(page);
   }
 
-  Widget _buildTimer(BuildContext cotext, TimerSectionController timer) =>
-      _TimerSectionPage(
+  Widget _buildTimer(BuildContext cotext,
+          ControllerHandle<TimerSectionController> timer) =>
+      TimerSectionPage(
         controller: timer,
       );
   @override
-  Widget build(BuildContext context) => widget.controller.timers.buildView(
-      builder: (context, timers, _) => PageView.builder(
-            controller: _pageController,
-            itemBuilder: (context, i) => _buildTimer(context, timers[i]),
-            itemCount: timers.length,
-            scrollDirection: Axis.vertical,
-            pageSnapping: true,
-          ));
+  Widget build(BuildContext context) =>
+      widget.controller.timerControllers.buildView(
+          builder: (context, timers, _) => PageView.builder(
+                controller: _pageController,
+                itemBuilder: (context, i) => _buildTimer(context, timers[i]),
+                itemCount: timers.length,
+                scrollDirection: Axis.vertical,
+                pageSnapping: true,
+              ));
 }
 
 class _TimerSectionTitle extends StatelessWidget {
@@ -102,18 +104,13 @@ class _TimerSectionTitle extends StatelessWidget {
       );
 }
 
-class _TimerSectionPage extends StatelessWidget {
-  const _TimerSectionPage({
-    Key? key,
-    required this.controller,
-  }) : super(key: key);
-
+class _TimerSectionLandscapePage extends StatelessWidget {
+  const _TimerSectionLandscapePage({Key? key, required this.controller})
+      : super(key: key);
   final TimerSectionController controller;
 
-  static const _kBottomPadding = 16.0;
-  static const _kHorizontalPadding = 24.0;
-
-  Widget _buildLandscape(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     final tinyLayout = isTiny(context);
     final adaptativeTextStyle =
         MD3ClockTypography.instance.clockTextTheme.largeTimeDisplay;
@@ -153,8 +150,18 @@ class _TimerSectionPage extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _buildPortrait(BuildContext context) {
+class _TimerSectionPortraitPage extends StatelessWidget {
+  const _TimerSectionPortraitPage({Key? key, required this.controller})
+      : super(key: key);
+  final TimerSectionController controller;
+
+  static const _kBottomPadding = 16.0;
+  static const _kHorizontalPadding = 24.0;
+
+  @override
+  Widget build(BuildContext context) {
     final adaptativeTextStyle =
         MD3ClockTypography.instance.clockTextTheme.largeTimeDisplay;
     final textStyle = adaptativeTextStyle.resolveTo(context.deviceType);
@@ -189,12 +196,21 @@ class _TimerSectionPage extends StatelessWidget {
       ),
     );
   }
+}
+
+class TimerSectionPage extends StatelessWidget {
+  const TimerSectionPage({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+
+  final ControllerHandle<TimerSectionController> controller;
 
   @override
   Widget build(BuildContext context) =>
       MediaQuery.of(context).orientation == Orientation.portrait
-          ? _buildPortrait(context)
-          : _buildLandscape(context);
+          ? _TimerSectionPortraitPage(controller: controller.unwrap)
+          : _TimerSectionLandscapePage(controller: controller.unwrap);
 }
 
 class _TimerResetOrAddMinuteButton extends StatelessWidget {
@@ -375,29 +391,46 @@ class TimerPage extends StatelessWidget {
     Key? key,
     required this.controller,
   }) : super(key: key);
-  final TimerPageController controller;
+  final ControllerHandle<TimerPageController> controller;
 
-  Widget _buildAddPage(BuildContext context) => FabSafeArea(
+  Widget _buildAddPage(BuildContext context) =>
+      TimerAddSection(controller: controller.unwrap.addSectionController);
+  Widget _buildTimersView(BuildContext context) => _TimersView(
+        key: const ObjectKey(false),
+        controller: controller.unwrap,
+      );
+
+  @override
+  Widget build(BuildContext context) => controller.unwrap.showAddPage.buildView(
+        builder: (context, showAddPage, _) {
+          print(showAddPage);
+          return SharedAxisSwitcher(
+            child: showAddPage
+                ? _buildAddPage(context)
+                : _buildTimersView(context),
+          );
+        },
+      );
+}
+
+class TimerAddSection extends StatelessWidget {
+  const TimerAddSection({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+
+  final ControllerHandle<AddSectionController> controller;
+
+  @override
+  Widget build(BuildContext context) => FabSafeArea(
         key: const ObjectKey(true),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: TimeKeypadAndVisor(
-            controller: controller.addSectionController.keypadController,
+            controller: controller.unwrap.keypadController,
             isLandscape:
                 MediaQuery.of(context).orientation == Orientation.landscape,
           ),
-        ),
-      );
-  Widget _buildTimersView(BuildContext context) => _TimersView(
-        key: const ObjectKey(false),
-        controller: controller,
-      );
-
-  @override
-  Widget build(BuildContext context) => controller.showAddPage.buildView(
-        builder: (context, showAddPage, _) => SharedAxisSwitcher(
-          child:
-              showAddPage ? _buildAddPage(context) : _buildTimersView(context),
         ),
       );
 }
@@ -407,11 +440,11 @@ class TimerPageFab extends StatelessWidget {
     Key? key,
     required this.controller,
   }) : super(key: key);
-  final TimerPageController controller;
+  final ControllerHandle<TimerPageController> controller;
 
   @override
   Widget build(BuildContext context) => FABGroup(
-        controller: controller.fabGroupController,
+        controller: controller.unwrap.fabGroupController,
         leftIcon: Icon(Icons.delete_outline),
         rightIcon: Icon(Icons.add),
       );

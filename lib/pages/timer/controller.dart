@@ -15,16 +15,20 @@ enum TimerSectionState {
   beeping,
 }
 
-class _AddSectionController extends ControllerBase<_AddSectionController>
+class AddSectionController
+    extends SubcontrollerBase<TimerPageController, AddSectionController>
     with IConnectToAnFABGroup {
   final ValueNotifier<bool> _canCancel;
   final EventNotifier<TimeKeypadResult> _didStart = EventNotifier();
   final ActionNotifier _didCancel = ActionNotifier();
-  final TimeKeypadController keypadController = TimeKeypadController.zero();
+  final TimeKeypadController _keypadController = TimeKeypadController.zero();
 
-  _AddSectionController.from(
+  AddSectionController.from(
     bool canCancel,
   ) : _canCancel = ValueNotifier(canCancel);
+
+  ControllerHandle<TimeKeypadController> get keypadController =>
+      _keypadController.handle;
 
   @override
   ValueListenable<bool> get showFabLeftIcon => _canCancel.view();
@@ -35,7 +39,7 @@ class _AddSectionController extends ControllerBase<_AddSectionController>
 
   @override
   ValueListenable<CenterFABState> get centerFabState =>
-      keypadController.isResultEmpty.map((isResultEmpty) =>
+      _keypadController.isResultEmpty.map((isResultEmpty) =>
           isResultEmpty ? CenterFABState.hidden : CenterFABState.play);
 
   @override
@@ -49,18 +53,18 @@ class _AddSectionController extends ControllerBase<_AddSectionController>
   }
 
   @override
-  void onFabCenter() => _didStart.add(keypadController.result.value);
+  void onFabCenter() => _didStart.add(_keypadController.result.value);
 
   void setCanCancel(bool value) => _canCancel.value = value;
 
-  void clear() => keypadController.onClear();
+  void clear() => _keypadController.onClear();
 
   @override
   void dispose() {
     IDisposable.disposeAll([
       _canCancel,
       _didCancel,
-      keypadController,
+      _keypadController,
       _didStart,
     ]);
     super.dispose();
@@ -94,7 +98,8 @@ class _ActiveTimerSectionInfo {
   }
 }
 
-class TimerSectionController extends ControllerBase<TimerSectionController>
+class TimerSectionController
+    extends SubcontrollerBase<TimerPageController, TimerSectionController>
     implements IConnectToAnFABGroup {
   final ValueNotifier<TimerSectionState> _state;
   final Duration _timerDuration;
@@ -276,17 +281,19 @@ class TimerSectionController extends ControllerBase<TimerSectionController>
 
 class TimerPageController extends ControllerBase<TimerPageController>
     with FABGroupConnectionManagerMixin {
-  final ListValueNotifier<TimerSectionController> _timers;
-  final _AddSectionController _addSectionController;
+  final ListValueNotifier<TimerSectionController> __timers;
+  late final AddSectionController _addSectionController;
   final ValueNotifier<_ActiveTimerSectionInfo> _activeTimerSectionInfo;
   final EventNotifier<int> _didMoveToSection = EventNotifier();
   final ICreateTickers _tickerFactory;
 
   @override
-  final FABGroupController fabGroupController = FABGroupController.from(
-    showLeftIcon: false,
-    centerState: CenterFABState.hidden,
-    showRightIcon: false,
+  late final FABGroupController fabGroupController = addChild(
+    FABGroupController.from(
+      showLeftIcon: false,
+      centerState: CenterFABState.hidden,
+      showRightIcon: false,
+    ),
   );
 
   factory TimerPageController({
@@ -301,20 +308,28 @@ class TimerPageController extends ControllerBase<TimerPageController>
     List<TimerSectionController> controllers, {
     int? currentPage,
     required ICreateTickers vsync,
-  })  : _timers = ListValueNotifier.of(controllers),
-        _addSectionController =
-            _AddSectionController.from(controllers.isNotEmpty),
+  })  : __timers = ListValueNotifier.of(controllers),
         _activeTimerSectionInfo = ValueNotifier(_ActiveTimerSectionInfo(
           controllers.isEmpty ? null : (currentPage ?? 0),
           controllers.isEmpty,
         )),
         _tickerFactory = vsync {
+    _addSectionController =
+        addSubcontroller(AddSectionController.from(controllers.isNotEmpty));
     init();
   }
 
-  ValueListenable<UnmodifiableListView<TimerSectionController>> get timers =>
-      _timers.view();
-  _AddSectionController get addSectionController => _addSectionController;
+  ValueListenable<UnmodifiableListView<TimerSectionController>> get _timers =>
+      __timers.view();
+  ValueListenable<
+          UnmodifiableListView<ControllerHandle<TimerSectionController>>>
+      get timerControllers => __timers.view().map(
+            (e) => UnmodifiableListView(
+              e.map((e) => e.handle).toList(),
+            ),
+          );
+  ControllerHandle<AddSectionController> get addSectionController =>
+      _addSectionController.handle;
   ValueListenable<int> get didMoveToSection => _didMoveToSection.viewNexts();
 
   ValueListenable<bool> get showAddPage =>
@@ -330,7 +345,7 @@ class TimerPageController extends ControllerBase<TimerPageController>
   @override
   void init() {
     super.init();
-    for (final controller in _timers) {
+    for (final controller in __timers) {
       _registerTimer(controller);
     }
     _bindings = IDisposable.merge([
@@ -346,7 +361,7 @@ class TimerPageController extends ControllerBase<TimerPageController>
     disposeFabConnection();
     IDisposable.disposeAll([
       _bindings,
-      _timers,
+      __timers,
       _activeTimerSectionInfo,
       _addSectionController,
       _didMoveToSection,
@@ -355,22 +370,24 @@ class TimerPageController extends ControllerBase<TimerPageController>
   }
 
   ValueListenable<bool> get _hasTimers =>
-      timers.map((timers) => timers.isNotEmpty);
+      _timers.map((timers) => timers.isNotEmpty);
 
-  ValueListenable<TimerSectionController?> get _currentSection =>
-      timers.bind((timers) =>
-          currentPage.map((page) => page == null ? null : timers[page]));
+  ValueListenable<ControllerHandle<TimerSectionController>?>
+      get _currentSection => _timers.bind((timers) =>
+          currentPage.map((page) => page == null ? null : timers[page].handle));
 
   ValueListenable<IConnectToAnFABGroup> get _currentlyConnectedToTheFab =>
       _currentSection
           .bind(
             (currentSection) => showAddPage.map((showAddPage) =>
-                showAddPage ? _addSectionController : currentSection!),
+                showAddPage ? _addSectionController : currentSection!.unwrap),
           )
           .unique()
+          .castNotNull()
           .cast();
 
   void _registerTimer(TimerSectionController timer) {
+    registerSubcontroller(timer);
     // No need to add it to be disposed because when the parent object (timer)
     // is disposed, the views to it are rendered useless.
     timer.didDelete.listen(() => _onDelete(timer));
@@ -401,8 +418,8 @@ class TimerPageController extends ControllerBase<TimerPageController>
   }
 
   void _addAndSetToTimer(TimerSectionController timer) {
-    _timers.add(timer);
-    final targetPage = _timers.length - 1;
+    __timers.add(timer);
+    final targetPage = __timers.length - 1;
     // Already set it because the view is expected to instantly move to the view
     _activeTimerSectionInfo.value = _ActiveTimerSectionInfo(targetPage, false);
     _didMoveToSection.add(targetPage);
@@ -411,9 +428,8 @@ class TimerPageController extends ControllerBase<TimerPageController>
   void _onDelete(TimerSectionController timer) {
     // Wrap everything in a mutate block so that notify listeners is called only
     // after the other state
-    _timers.mutate((timers) {
+    __timers.mutate((timers) {
       final index = timers.indexOf(timer);
-      timers.removeAt(index);
       if (timers.isEmpty) {
         _activeTimerSectionInfo.value = _ActiveTimerSectionInfo(null, true);
         _addSectionController.clear();
