@@ -177,17 +177,20 @@ class TimeKeypad extends StatelessWidget {
     required this.controller,
     this.isPortrait = false,
   }) : super(key: key);
-  final TimeKeypadController controller;
+  final ControllerHandle<TimeKeypadController> controller;
   final bool isPortrait;
 
   @override
-  Widget build(BuildContext context) => _TimeKeypad(
-        onDigit: controller.onDigit,
-        onZeroZero: controller.onZeroZero,
-        onDelete: controller.onDelete,
-        onClear: controller.onClear,
-        isPortrait: isPortrait,
-      );
+  Widget build(BuildContext context) {
+    final controller = this.controller.unwrap;
+    return _TimeKeypad(
+      onDigit: controller.onDigit,
+      onZeroZero: controller.onZeroZero,
+      onDelete: controller.onDelete,
+      onClear: controller.onClear,
+      isPortrait: isPortrait,
+    );
+  }
 }
 
 class TimeKeypadAndVisor extends StatelessWidget {
@@ -196,7 +199,7 @@ class TimeKeypadAndVisor extends StatelessWidget {
     required this.controller,
     this.isLandscape = false,
   }) : super(key: key);
-  final TimeKeypadController controller;
+  final ControllerHandle<TimeKeypadController> controller;
   final bool isLandscape;
 
   Widget _buildPortrait(BuildContext context) => Column(
@@ -204,7 +207,7 @@ class TimeKeypadAndVisor extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Spacer(),
-          TimeKeypadVisor(result: controller.result),
+          TimeKeypadVisor(result: controller.unwrap.result),
           Spacer(),
           Flexible(
             flex: 8,
@@ -240,7 +243,8 @@ class TimeKeypadAndVisor extends StatelessWidget {
                       alignment: Alignment.topCenter,
                       child: FittedBox(
                         fit: BoxFit.contain,
-                        child: TimeKeypadVisor(result: controller.result),
+                        child:
+                            TimeKeypadVisor(result: controller.unwrap.result),
                       ),
                     ),
                   ),
