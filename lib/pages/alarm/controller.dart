@@ -9,7 +9,7 @@ import 'package:value_notifier/value_notifier.dart';
 import '../../model/alarm.dart';
 import '../../model/weekday.dart';
 
-const kDefaultAlarm = Alarm('BusyBugs', true, AlarmSource.sounds);
+const kDefaultAlarm = AlarmSound('BusyBugs', true, SoundSource.sounds);
 
 class AlarmPageController extends ControllerBase<AlarmPageController> {
   late final SortedAnimatedListController<AlarmItemController> _itemControllers;
