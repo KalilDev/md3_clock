@@ -167,4 +167,23 @@ extension WeekdayViewE on Weekday {
         return 'sexta-feira';
     }
   }
+
+  String get uppercasedLongText {
+    switch (this) {
+      case Weekday.saturday:
+        return 'Sábado';
+      case Weekday.sunday:
+        return 'Domingo';
+      case Weekday.monday:
+        return 'Segunda-feira';
+      case Weekday.tuesday:
+        return 'Terça-feira';
+      case Weekday.wednsday:
+        return 'Quarta-feira';
+      case Weekday.thursday:
+        return 'Quinta-feira';
+      case Weekday.friday:
+        return 'Sexta-feira';
+    }
+  }
 }
