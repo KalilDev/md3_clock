@@ -55,6 +55,11 @@ class ClockPreferencesController extends SubcontrollerBase<
   ValueListenable<Timezone?> get homeTimezone => _homeTimezone.view();
   ValueListenable<void> get didRequestShowChangeDateTime =>
       _didRequestShowChangeDateTime.view();
+
+  late final setStyle = _style.setter;
+  late final setShowSeconds = _showSeconds.setter;
+  late final setAutoHomeTimezoneClock = _autoHomeTimezoneClock.setter;
+  late final requestShowChangeDateTime = _didRequestShowChangeDateTime.notify;
 }
 
 class AlarmsPreferencesController extends SubcontrollerBase<
@@ -99,6 +104,10 @@ class AlarmsPreferencesController extends SubcontrollerBase<
   ValueListenable<VolumeButtonsBehavior> get volumeButtonsBehavior =>
       _volumeButtonsBehavior.view();
   ValueListenable<Weekday> get startOfTheWeek => _startOfTheWeek.view();
+
+  late final setVolume = _volume.setter;
+  late final setStartOfTheWeek = _startOfTheWeek.setter;
+  late final setVolumeButtonsBehavior = _volumeButtonsBehavior.setter;
 }
 
 class TimersPreferencesController extends SubcontrollerBase<
@@ -124,7 +133,9 @@ class TimersPreferencesController extends SubcontrollerBase<
   ValueListenable<Sound?> get sound => _sound.view();
   ValueListenable<Duration?> get volumeIncreaseDuration =>
       _volumeIncreaseDuration.view();
-  ValueListenable<bool?> get vibrate => _vibrate.view();
+  ValueListenable<bool> get vibrate => _vibrate.view();
+
+  late final setVibrate = _vibrate.setter;
 }
 
 class ScreensaverPreferencesController extends SubcontrollerBase<
@@ -146,6 +157,9 @@ class ScreensaverPreferencesController extends SubcontrollerBase<
 
   ValueListenable<ClockStyle> get style => _style.view();
   ValueListenable<bool> get nightMode => _nightMode.view();
+
+  late final setStyle = _style.setter;
+  late final setNightMode = _nightMode.setter;
 }
 
 class PreferencesController extends ControllerBase<PreferencesController> {
@@ -153,6 +167,15 @@ class PreferencesController extends ControllerBase<PreferencesController> {
   late final AlarmsPreferencesController _alarmsPreferencesController;
   late final TimersPreferencesController _timersPreferencesController;
   late final ScreensaverPreferencesController _screensaverPreferencesController;
+
+  ControllerHandle<ClockPreferencesController> get clock =>
+      _clockPreferencesController.handle;
+  ControllerHandle<AlarmsPreferencesController> get alarms =>
+      _alarmsPreferencesController.handle;
+  ControllerHandle<TimersPreferencesController> get timers =>
+      _timersPreferencesController.handle;
+  ControllerHandle<ScreensaverPreferencesController> get screensaver =>
+      _screensaverPreferencesController.handle;
 
   @override
   void init() {
