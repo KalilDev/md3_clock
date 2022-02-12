@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/components/current_time/controller.dart';
+import 'package:md3_clock/components/navigation_manager/controller.dart';
 import 'package:md3_clock/model/city.dart';
 import 'package:md3_clock/model/weekday.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
@@ -132,7 +133,9 @@ class _ClockHomePageState extends State<ClockHomePage>
     with SingleTickerProviderStateMixin {
   late final vsync = FlutterTickerFactory(vsync: this);
   late final controller = ClockHomePageController(vsync);
-  final fabKey = GlobalKey();
+  // TODO: using an global key results in it being used twice on the tree for some reason?
+  final fabKey = UniqueKey();
+  final _bodyKey = GlobalKey();
 
   void dispose() {
     vsync.dispose();
@@ -145,16 +148,32 @@ class _ClockHomePageState extends State<ClockHomePage>
       .map((page) => page.floatingActionButton ?? SizedBox())
       .buildView(key: fabKey);
 
-  void _onMenuDestination(BuildContext context, MenuDestination destination) {
-    print('TODO');
+  void _onMenuDestination(BuildContext context, _MenuDestination destination) {
+    final navigator =
+        InheritedController.get<NavigationManagerController>(context).unwrap;
+    switch (destination) {
+      case _MenuDestination.screensaver:
+        navigator.requestNavigationToScreensaver();
+        break;
+      case _MenuDestination.preferences:
+        navigator.requestNavigationToPreferences();
+        break;
+      case _MenuDestination.feedback:
+        navigator.requestNavigationToSendFeedback();
+        break;
+      case _MenuDestination.help:
+        navigator.requestNavigationToHelp();
+        break;
+    }
   }
 
-  void _openPopupMenuFrom(BuildContext context) => showMD3Menu<MenuDestination>(
+  void _openPopupMenuFrom(BuildContext context) =>
+      showMD3Menu<_MenuDestination>(
         context: context,
         position: rectFromContext(context),
-        items: MenuDestination.values
+        items: _MenuDestination.values
             .map(
-              (e) => MD3PopupMenuItem<MenuDestination>(
+              (e) => MD3PopupMenuItem<_MenuDestination>(
                 value: e,
                 child: Text(e.text),
               ),
@@ -211,6 +230,7 @@ class _ClockHomePageState extends State<ClockHomePage>
             delegate: navigationDelegate,
             spec: spec,
             body: controller.currentPage.build(
+              key: _bodyKey,
               builder: (context, page, _) => FadeThroughSwitcher(
                 child: KeyedSubtree(
                   key: ObjectKey(page),
@@ -223,23 +243,23 @@ class _ClockHomePageState extends State<ClockHomePage>
       );
 }
 
-enum MenuDestination {
+enum _MenuDestination {
   screensaver,
-  settings,
+  preferences,
   feedback,
   help,
 }
 
-extension on MenuDestination {
+extension on _MenuDestination {
   String get text {
     switch (this) {
-      case MenuDestination.screensaver:
+      case _MenuDestination.screensaver:
         return 'Protetor de tela';
-      case MenuDestination.settings:
+      case _MenuDestination.preferences:
         return 'Configurações';
-      case MenuDestination.feedback:
+      case _MenuDestination.feedback:
         return 'Enviar feedback';
-      case MenuDestination.help:
+      case _MenuDestination.help:
         return 'Ajuda';
     }
   }
