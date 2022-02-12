@@ -67,8 +67,9 @@ class _MyAppState extends State<MyApp> {
               themeMode: themeMode,
               debugShowCheckedModeBanner: false,
               routes: const {'/preferences': _preferencesRouteBuilder},
-              home: const _DesktopOverlays(
-                child: ClockHomePage(),
+              home: const ClockHomePage(),
+              builder: (context, home) => _DesktopOverlays(
+                child: home!,
               ),
             ),
           ),
