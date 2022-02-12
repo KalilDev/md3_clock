@@ -1,14 +1,21 @@
-enum AlarmSource {
+enum SoundSource {
   sounds,
   spotify,
 }
 
-class Alarm {
+class AlarmSound {
   final String name;
   final bool isDefault;
-  final AlarmSource source;
+  final SoundSource source;
 
-  const Alarm(this.name, this.isDefault, this.source);
+  const AlarmSound(this.name, this.isDefault, this.source);
 
   String get text => isDefault ? 'Padrão ($name)' : name;
+}
+
+class Sound {
+  final String name;
+  final SoundSource source = SoundSource.sounds;
+
+  Sound(this.name);
 }

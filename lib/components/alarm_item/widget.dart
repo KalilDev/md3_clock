@@ -271,7 +271,7 @@ class _AlarmItemHiddenSection extends StatelessWidget {
   Widget _alarmTile(BuildContext context) => controller.alarm.buildView(
         builder: (context, alarm, _) => _ListTile(
           leading: Icon(
-            alarm.source == AlarmSource.sounds ? Icons.alarm : Icons.stop,
+            alarm.source == SoundSource.sounds ? Icons.alarm : Icons.stop,
           ),
           title: Text(alarm.text),
           onTap: () => showAlarmDialog(context),

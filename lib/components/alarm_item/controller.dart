@@ -9,7 +9,7 @@ class AlarmItemController extends ControllerBase<AlarmItemController> {
   final ValueNotifier<TimeOfDay> _time;
   final ValueNotifier<String> _marker;
   // TODO: null when default and on the view get it from somewhere.
-  final ValueNotifier<Alarm> _alarm;
+  final ValueNotifier<AlarmSound> _alarm;
   final ValueNotifier<Weekdays> _weekdays;
   final ValueNotifier<bool> _active;
   final ValueNotifier<bool> _vibrate;
@@ -20,7 +20,7 @@ class AlarmItemController extends ControllerBase<AlarmItemController> {
 
   ValueListenable<TimeOfDay> get time => _time.view();
   ValueListenable<String> get marker => _marker.view();
-  ValueListenable<Alarm> get alarm => _alarm.view();
+  ValueListenable<AlarmSound> get alarm => _alarm.view();
   ValueListenable<Weekdays> get weekdays => _weekdays.view();
   ValueListenable<bool> get active => _active.view();
   ValueListenable<bool> get vibrate => _vibrate.view();
@@ -32,7 +32,7 @@ class AlarmItemController extends ControllerBase<AlarmItemController> {
   AlarmItemController.from(
     TimeOfDay time,
     String marker,
-    Alarm alarm,
+    AlarmSound alarm,
     Weekdays weekdays,
     bool active,
     bool vibrate,
@@ -48,7 +48,7 @@ class AlarmItemController extends ControllerBase<AlarmItemController> {
 
   AlarmItemController.create(
     TimeOfDay time,
-    Alarm defaultAlarm,
+    AlarmSound defaultAlarm,
   )   : assert(defaultAlarm.isDefault),
         _time = ValueNotifier(time),
         _marker = ValueNotifier(''),
