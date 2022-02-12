@@ -54,7 +54,7 @@ class ClockNavigationDelegate extends MD3NavigationDelegate {
                   MD3MaterialStateElevation.resolveWith(
                     (states) => states.contains(MaterialState.scrolledUnder)
                         ? context.elevation.level2
-                        : context.elevation.level2,
+                        : context.elevation.level1,
                   ),
                 ).resolve({
                   if (isScrolledUnder) MaterialState.scrolledUnder,
