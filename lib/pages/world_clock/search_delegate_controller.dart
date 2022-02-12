@@ -75,7 +75,10 @@ class WorldClockSearchController
         }
       });
 
-  // late final because whereKeepingPrevious creates an side effect
+  // late final because whereKeepingPrevious creates an side effect.
+  // Contains the data of the connected query, if it has data, and the data of
+  // the previous query if it doesnt have data, with an empty result
+  // representing both no queries and an empty query.
   late final ValueListenable<List<City>> _queryResult = _connectedQueryFetch
       .view()
       .map((snap) => snap.hasData ? snap.requireData : null)
