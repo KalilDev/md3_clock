@@ -1,11 +1,16 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
+import 'package:md3_clock/components/navigation_manager/controller.dart';
+import 'package:md3_clock/components/navigation_manager/widget.dart';
 import 'package:md3_clock/pages/home/home.dart';
 import 'package:md3_clock/utils/utils.dart';
 import 'package:value_notifier/value_notifier.dart';
 import 'package:value_notifier/src/frame.dart';
+import 'pages/preferences/controller.dart';
+import 'pages/preferences/widget.dart';
 import 'typography/typography.dart';
 import 'utils/theme.dart';
 
@@ -18,8 +23,20 @@ void main() {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
+
+  static Widget _preferencesRouteBuilder(BuildContext context) =>
+      PreferencesPage(
+        controller: InheritedController.of(context),
+      );
 
   // This widget is the root of your application.
   @override
@@ -29,19 +46,32 @@ class MyApp extends StatelessWidget {
         ? ClockTheme.baseline
         : ClockTheme.fromPlatform(palette);
     const themeMode = kDebugMode ? ThemeMode.dark : ThemeMode.system;
-    return MD3Themes(
-      targetPlatform: TargetPlatform.android,
-      monetThemeForFallbackPalette: monetTheme,
-      textTheme: MD3ClockTypography.instance.adaptativeTextTheme,
-      usePlatformPalette: false,
-      builder: (context, light, dark) => MaterialApp(
-        title: 'Relógio',
-        theme: light,
-        darkTheme: dark,
-        themeMode: themeMode,
-        debugShowCheckedModeBanner: false,
-        home: _DesktopOverlays(
-          child: const ClockHomePage(),
+    return InheritedControllerInjector(
+      factory: (_) => PreferencesController(),
+      child: ControllerInjectorBuilder<NavigationManagerController>(
+        inherited: true,
+        factory: (_) => NavigationManagerController(),
+        builder: (context, controller) => NavigationManager(
+          navigatorKey: navigatorKey,
+          controller: controller,
+          child: MD3Themes(
+            targetPlatform: TargetPlatform.android,
+            monetThemeForFallbackPalette: monetTheme,
+            textTheme: MD3ClockTypography.instance.adaptativeTextTheme,
+            usePlatformPalette: false,
+            builder: (context, light, dark) => MaterialApp(
+              navigatorKey: navigatorKey,
+              title: 'Relógio',
+              theme: light,
+              darkTheme: dark,
+              themeMode: themeMode,
+              debugShowCheckedModeBanner: false,
+              routes: const {'/preferences': _preferencesRouteBuilder},
+              home: const _DesktopOverlays(
+                child: ClockHomePage(),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -76,15 +106,24 @@ class _DesktopOverlays extends StatelessWidget {
         EdgeInsets.only(
           top: _kAppbarHeight,
           bottom: isPortrait ? _kBottomBarHeight : 0,
-          right: isPortrait ? 0 : _kBottomBarHeight,
         );
+    // TODO: should be handled by scaffold?
+    var size = mediaQuery.size;
+    if (!isPortrait) {
+      size = Size(size.width - _kBottomBarHeight, size.height);
+    }
     return Stack(
       children: [
         Positioned.fill(
+          // TODO: should be handled by scaffold?
+          right: isPortrait ? 0 : _kBottomBarHeight,
           child: MediaQuery(
             data: mediaQuery.copyWith(
               viewPadding: padding,
               padding: padding,
+              viewInsets: padding,
+              systemGestureInsets: padding,
+              size: size,
             ),
             child: child,
           ),
@@ -102,6 +141,7 @@ class _DesktopOverlays extends StatelessWidget {
         Positioned(
           bottom: 0,
           left: isPortrait ? 0 : null,
+          top: isPortrait ? null : 0,
           right: 0,
           height: isPortrait ? _kBottomBarHeight : null,
           width: isPortrait ? null : _kBottomBarHeight,
