@@ -6,8 +6,10 @@ import 'package:md3_clock/components/current_time/widget.dart';
 import 'package:md3_clock/components/sorted_animated_list/widget.dart';
 import 'package:md3_clock/model/duration_components.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
+import 'package:md3_clock/pages/preferences/controller.dart';
 import 'package:md3_clock/utils/layout.dart';
 import 'package:md3_clock/utils/theme.dart';
+import 'package:md3_clock/widgets/analog_clock.dart';
 import 'package:md3_clock/widgets/duration.dart';
 import 'package:md3_clock/widgets/fab_safe_area.dart';
 import 'package:value_notifier/value_notifier.dart';
@@ -50,9 +52,13 @@ class _CityCard extends StatelessWidget {
   const _CityCard({
     Key? key,
     required this.model,
+    required this.showSeconds,
+    required this.style,
     required this.onDelete,
   }) : super(key: key);
   final CityViewModel model;
+  final bool showSeconds;
+  final ClockStyle style;
   final ValueChanged<DismissDirection> onDelete;
 
   static String _offsetToString(Duration offset) {
@@ -83,11 +89,23 @@ class _CityCard extends StatelessWidget {
         ],
       );
 
-  Widget _timeAtCity(BuildContext context) => DefaultTextStyle.merge(
+  Widget _timeAtCity(BuildContext context) => style == ClockStyle.digital
+      ? _digitalTimeAtCity(context)
+      : _analogTimeAtCity(context);
+  Widget _digitalTimeAtCity(BuildContext context) => DefaultTextStyle.merge(
         style: TextStyle(color: context.colorScheme.onSurface),
         child: TimeOfDayWidget(
-          timeOfDay: model.currentOffsetTime,
+          timeOfDay: model.currentOffsetTime.toTimeOfDay(),
           numberStyle: context.textTheme.displayMedium,
+        ),
+      );
+
+  Widget _analogTimeAtCity(BuildContext context) => SizedBox(
+        width: 80,
+        height: 80,
+        child: AnalogClock(
+          time: model.currentOffsetTime.toTimeOfDay(),
+          seconds: showSeconds ? model.currentOffsetTime.second : null,
         ),
       );
 
@@ -100,13 +118,16 @@ class _CityCard extends StatelessWidget {
         ],
       );
 
-  Widget _buildInnerCardLandscapeBody(BuildContext context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _timeAtCity(context),
-          _cityNameAndOffset(context),
-        ],
+  Widget _buildInnerCardLandscapeBody(BuildContext context) => SizedBox(
+        width: double.infinity,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _timeAtCity(context),
+            _cityNameAndOffset(context),
+          ],
+        ),
       );
 
   Widget _buildInnerCard(BuildContext context) => FilledCard(
@@ -145,6 +166,28 @@ class _CityCard extends StatelessWidget {
       );
 }
 
+class _InheritedClockInfo extends InheritedWidget {
+  final bool showSeconds;
+  final ClockStyle style;
+
+  const _InheritedClockInfo({
+    Key? key,
+    required this.showSeconds,
+    required this.style,
+    required Widget child,
+  }) : super(
+          key: key,
+          child: child,
+        );
+
+  @override
+  bool updateShouldNotify(_InheritedClockInfo oldWidget) =>
+      oldWidget.showSeconds != showSeconds || oldWidget.style != style;
+
+  static _InheritedClockInfo of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_InheritedClockInfo>()!;
+}
+
 class _ClockPortraitBody extends StatelessWidget {
   const _ClockPortraitBody({Key? key, required this.controller})
       : super(key: key);
@@ -163,6 +206,8 @@ class _ClockPortraitBody extends StatelessWidget {
         animation: animation,
         child: _CityCard(
           model: cityClock,
+          showSeconds: _InheritedClockInfo.of(context).showSeconds,
+          style: _InheritedClockInfo.of(context).style,
           onDelete: (_) => _onItemDelete(cityClock),
         ),
       );
@@ -216,6 +261,8 @@ class _ClockLandscapeBody extends StatelessWidget {
         animation: animation,
         child: _CityCard(
           model: cityClock,
+          showSeconds: _InheritedClockInfo.of(context).showSeconds,
+          style: _InheritedClockInfo.of(context).style,
           onDelete: (_) => _onItemDelete(cityClock),
         ),
       );
@@ -285,10 +332,27 @@ class ClockPage extends StatelessWidget {
       : _ClockLandscapeBody(controller: controller);
 
   @override
-  Widget build(BuildContext context) => _cardTheme(
-        context,
-        child: _buildBody(context),
+  Widget build(BuildContext context) => controller.showSeconds
+      .bind((showSeconds) => controller.clockStyle
+          .map((style) => _ShowSecondsAndStyle(showSeconds, style)))
+      .build(
+        builder: (context, info, child) => _InheritedClockInfo(
+          showSeconds: info.showSeconds,
+          style: info.style,
+          child: child!,
+        ),
+        child: _cardTheme(
+          context,
+          child: _buildBody(context),
+        ),
       );
+}
+
+class _ShowSecondsAndStyle {
+  final bool showSeconds;
+  final ClockStyle style;
+
+  _ShowSecondsAndStyle(this.showSeconds, this.style);
 }
 
 class ClockPageFab extends StatelessWidget {

@@ -4,6 +4,7 @@ import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/components/current_time/controller.dart';
 import 'package:md3_clock/components/sorted_animated_list/controller.dart';
 import 'package:md3_clock/model/city.dart';
+import 'package:md3_clock/model/time.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
 import 'package:md3_clock/utils/chrono.dart';
 import 'package:value_notifier/value_notifier.dart';
@@ -46,7 +47,7 @@ int _compareCityViewModel(CityViewModel a, CityViewModel b) {
 class CityViewModel {
   final City city;
   final Duration timeZoneOffsetLocal;
-  final TimeOfDay currentOffsetTime;
+  final MomentOfDay currentOffsetTime;
 
   const CityViewModel(
     this.city,
@@ -58,7 +59,7 @@ class CityViewModel {
     return CityViewModel(
       city,
       Duration.zero,
-      TimeOfDay(hour: 0, minute: 0),
+      MomentOfDay(hour: 0, minute: 0, second: 0),
     ).withUtcTime(
       now.toUtc(),
       now.timeZoneOffset,
@@ -72,7 +73,7 @@ class CityViewModel {
       CityViewModel(
         city,
         timeZoneOffsetUtc - currentTimeZoneUtcOffset,
-        TimeOfDay.fromDateTime(
+        MomentOfDay.fromDateTime(
           utcTime.add(timeZoneOffsetUtc),
         ),
       );
@@ -113,10 +114,20 @@ class ClockPageController extends ControllerBase<ClockPageController> {
   ValueListenable<DateTime> get currentLocalTime => _ticker.elapsedTick
       .map((_) => DateTime.now())
       .withInitial(DateTime.now());
-  ValueListenable<TimeOfDay> get currentUtcTimeOfDay => currentLocalTime
-      .map((time) => time.toUtc())
-      .map(TimeOfDay.fromDateTime)
-      .unique();
+
+  ValueListenable<DateTime> get currentUTCTime =>
+      currentLocalTime.map((time) => time.toUtc());
+  ValueListenable<DateTime> get currentLocalTimeByMinute =>
+      currentLocalTime.unique((a, b) =>
+          (a.millisecondsSinceEpoch / Duration.millisecondsPerMinute) ==
+          (b.millisecondsSinceEpoch / Duration.millisecondsPerMinute));
+  ValueListenable<DateTime> get currentUTCTimeByMinute =>
+      currentLocalTimeByMinute.map((time) => time.toUtc());
+  ValueListenable<DateTime> get currentLocalTimeTick =>
+      showSeconds.bind((showSeconds) =>
+          showSeconds ? currentLocalTime : currentLocalTimeByMinute);
+  ValueListenable<DateTime> get currentUTCTimeTick => showSeconds.bind(
+      (showSeconds) => showSeconds ? currentUTCTime : currentUTCTimeByMinute);
 
   ValueListenable<ClockStyle> get clockStyle => _clockStyle.view();
   ValueListenable<bool> get showSeconds => _showSeconds.view();
@@ -143,13 +154,13 @@ class ClockPageController extends ControllerBase<ClockPageController> {
 
   void init() {
     super.init();
-    currentUtcTimeOfDay.tap(_onCurrentUtcTimeUpdate, includeInitial: true);
+    currentLocalTimeTick.connect(_onCurrentTimeUpdate);
     _ticker.start();
     clockStyle.connect(currentTimeController.setStyle);
+    showSeconds.connect(currentTimeController.setShowSeconds);
   }
 
-  void _onCurrentUtcTimeUpdate(TimeOfDay time) {
-    final now = DateTime.now();
+  void _onCurrentTimeUpdate(DateTime now) {
     currentTimeController.updateLocalTime(now);
     final nowUtc = now.toUtc();
     final currentTimeZoneUtcDifference = now.timeZoneOffset;
@@ -157,8 +168,9 @@ class ClockPageController extends ControllerBase<ClockPageController> {
       nowUtc.year,
       nowUtc.month,
       nowUtc.day,
-      time.hour,
-      time.minute,
+      now.hour,
+      now.minute,
+      now.second,
     );
     clocksList.mutate((clocks) {
       for (var i = 0; i < clocks.length; i++) {
