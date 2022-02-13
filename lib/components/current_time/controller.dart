@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:md3_clock/model/date.dart';
 import 'package:md3_clock/model/weekday.dart';
+import 'package:md3_clock/pages/preferences/controller.dart';
 import 'package:value_notifier/value_notifier.dart';
 
 class NextAlarmViewModel {
@@ -14,15 +15,19 @@ class NextAlarmViewModel {
 class CurrentTimeControler extends ControllerBase<CurrentTimeControler> {
   ValueNotifier<DateTime> _localTime;
   ValueNotifier<NextAlarmViewModel?> _nextAlarm;
+  ValueNotifier<ClockStyle> _style;
 
   CurrentTimeControler({
     DateTime? localTime,
     NextAlarmViewModel? nextAlarm,
+    ClockStyle? style,
   })  : _localTime = ValueNotifier(localTime ?? DateTime.now()),
-        _nextAlarm = ValueNotifier(nextAlarm);
+        _nextAlarm = ValueNotifier(nextAlarm),
+        _style = ValueNotifier(style ?? ClockStyle.digital);
 
   ValueListenable<DateTime> get localTime => _localTime.view();
   ValueListenable<NextAlarmViewModel?> get nextAlarm => _nextAlarm.view();
+  ValueListenable<ClockStyle> get style => _style.view();
 
   ValueListenable<TimeOfDay> get currentTime =>
       localTime.map(TimeOfDay.fromDateTime).unique();
@@ -38,11 +43,13 @@ class CurrentTimeControler extends ControllerBase<CurrentTimeControler> {
   void updateLocalTime(DateTime localTime) => _localTime.value = localTime;
   void updateNextAlarm(NextAlarmViewModel? nextAlarm) =>
       _nextAlarm.value = nextAlarm;
+  late final setStyle = _style.setter;
 
   void dispose() {
     IDisposable.disposeAll([
       _localTime,
       _nextAlarm,
+      _style,
     ]);
     super.dispose();
   }

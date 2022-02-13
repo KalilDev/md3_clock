@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/model/date.dart';
+import 'package:md3_clock/pages/preferences/controller.dart';
 import 'package:md3_clock/typography/typography.dart';
 import 'package:md3_clock/utils/layout.dart';
+import 'package:md3_clock/widgets/analog_clock.dart';
 import 'package:md3_clock/widgets/duration.dart';
 import 'package:md3_clock/widgets/weekday_picker.dart';
 import 'package:value_notifier/value_notifier.dart';
@@ -10,7 +12,7 @@ import '../../model/weekday.dart';
 import 'controller.dart';
 
 enum CurrentTimeLayout {
-  compactStartAligned,
+  portrait,
   expandedCenterAligned,
 }
 
@@ -18,28 +20,40 @@ class CurrentTime extends StatelessWidget {
   const CurrentTime({
     Key? key,
     required this.controller,
-    this.layout = CurrentTimeLayout.compactStartAligned,
+    this.layout = CurrentTimeLayout.portrait,
   }) : super(key: key);
   final CurrentTimeControler controller;
   final CurrentTimeLayout layout;
 
+  Widget _buildPortraitBody(BuildContext context, bool isAnalog) => SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment:
+              isAnalog ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+          children: [
+            _DigitalOrAnalogClock(
+              isAnalog: isAnalog,
+              controller: controller,
+            ),
+            _DateAndNextAlarm(controller: controller),
+          ],
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     switch (layout) {
-      case CurrentTimeLayout.compactStartAligned:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _DigitalClock(controller: controller),
-            _DateAndNextAlarm(controller: controller),
-          ],
-        );
+      case CurrentTimeLayout.portrait:
+        return controller.style
+            .map((style) => style == ClockStyle.analog)
+            .map((isAnalog) => _buildPortraitBody(context, isAnalog))
+            .build();
       case CurrentTimeLayout.expandedCenterAligned:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Spacer(),
-            _DigitalClock(controller: controller),
+            _DigitalOrAnalogClock(controller: controller),
             const Spacer(),
             _DateAndNextAlarm(controller: controller),
           ],
@@ -89,6 +103,57 @@ class _DateAndNextAlarm extends StatelessWidget {
           ],
         ),
       );
+}
+
+class _DigitalOrAnalogClock extends StatelessWidget {
+  const _DigitalOrAnalogClock({
+    Key? key,
+    this.isAnalog,
+    required this.controller,
+  }) : super(key: key);
+  final CurrentTimeControler controller;
+  final bool? isAnalog;
+
+  Widget _buildFromController(BuildContext context) => controller.style
+      .map(
+        (style) => style == ClockStyle.analog
+            ? _AnalogClock(controller: controller)
+            : _DigitalClock(controller: controller),
+      )
+      .build();
+
+  Widget _buildFromIsAnalog(BuildContext context, bool isAnalog) => isAnalog
+      ? _AnalogClock(controller: controller)
+      : _DigitalClock(controller: controller);
+
+  @override
+  Widget build(BuildContext context) => isAnalog == null
+      ? _buildFromController(context)
+      : _buildFromIsAnalog(context, isAnalog!);
+}
+
+class _AnalogClock extends StatelessWidget {
+  const _AnalogClock({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+  final CurrentTimeControler controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 312,
+      width: 312,
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: controller.currentTime.build(
+          builder: (context, time, _) => AnalogClock(
+            time: time,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _DigitalClock extends StatelessWidget {
