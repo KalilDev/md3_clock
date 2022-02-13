@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/components/navigation_manager/controller.dart';
 import 'package:md3_clock/components/navigation_manager/widget.dart';
+import 'package:md3_clock/coordinator/controller.dart';
+import 'package:md3_clock/coordinator/coordinator.dart';
 import 'package:md3_clock/pages/home/home.dart';
 import 'package:md3_clock/utils/utils.dart';
 import 'package:value_notifier/value_notifier.dart';
@@ -46,30 +48,36 @@ class _MyAppState extends State<MyApp> {
         ? ClockTheme.baseline
         : ClockTheme.fromPlatform(palette);
     const themeMode = kDebugMode ? ThemeMode.dark : ThemeMode.system;
-    return InheritedControllerInjector(
-      factory: (_) => PreferencesController(),
-      child: ControllerInjectorBuilder<NavigationManagerController>(
-        inherited: true,
-        factory: (_) => NavigationManagerController(),
-        builder: (context, controller) => NavigationManager(
-          navigatorKey: navigatorKey,
-          controller: controller,
-          child: MD3Themes(
-            targetPlatform: TargetPlatform.android,
-            monetThemeForFallbackPalette: monetTheme,
-            textTheme: MD3ClockTypography.instance.adaptativeTextTheme,
-            usePlatformPalette: false,
-            builder: (context, light, dark) => MaterialApp(
-              navigatorKey: navigatorKey,
-              title: 'Relógio',
-              theme: light,
-              darkTheme: dark,
-              themeMode: themeMode,
-              debugShowCheckedModeBanner: false,
-              routes: const {'/preferences': _preferencesRouteBuilder},
-              home: const ClockHomePage(),
-              builder: (context, home) => _DesktopOverlays(
-                child: home!,
+    return InheritedControllerInjector<Coordinator>(
+      factory: (_) => ControllerBase.create(
+          () => Coordinator([PreferencesCoordinatorComponent()])),
+      child: InheritedControllerInjector(
+        factory: (context) =>
+            context.createController((_) => PreferencesController()),
+        child: ControllerInjectorBuilder<NavigationManagerController>(
+          inherited: true,
+          factory: (context) =>
+              context.createController((_) => NavigationManagerController()),
+          builder: (context, controller) => NavigationManager(
+            navigatorKey: navigatorKey,
+            controller: controller,
+            child: MD3Themes(
+              targetPlatform: TargetPlatform.android,
+              monetThemeForFallbackPalette: monetTheme,
+              textTheme: MD3ClockTypography.instance.adaptativeTextTheme,
+              usePlatformPalette: false,
+              builder: (context, light, dark) => MaterialApp(
+                navigatorKey: navigatorKey,
+                title: 'Relógio',
+                theme: light,
+                darkTheme: dark,
+                themeMode: themeMode,
+                debugShowCheckedModeBanner: false,
+                routes: const {'/preferences': _preferencesRouteBuilder},
+                home: const ClockHomePage(),
+                builder: (context, home) => _DesktopOverlays(
+                  child: home!,
+                ),
               ),
             ),
           ),
