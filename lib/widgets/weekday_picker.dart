@@ -10,6 +10,31 @@ const _kWeekdaySize = 32.0;
 const _kWeekdayMinSep = 21.0;
 const _weekdayMinSpace = SizedBox(width: _kWeekdayMinSep);
 
+@immutable
+class WeekdaysPickerThemeData {
+  final Weekday? startOfTheWeek;
+
+  const WeekdaysPickerThemeData({
+    this.startOfTheWeek,
+  });
+}
+
+class WeekdaysPickerTheme extends InheritedWidget {
+  final WeekdaysPickerThemeData data;
+
+  const WeekdaysPickerTheme(
+      {Key? key, required this.data, required Widget child})
+      : super(key: key, child: child);
+
+  @override
+  bool updateShouldNotify(WeekdaysPickerTheme oldWidget) =>
+      data != oldWidget.data;
+
+  static WeekdaysPickerThemeData of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<WeekdaysPickerTheme>()?.data ??
+      const WeekdaysPickerThemeData();
+}
+
 class WeekdaysPicker extends StatelessWidget {
   const WeekdaysPicker({
     Key? key,
@@ -79,13 +104,22 @@ class WeekdaysPicker extends StatelessWidget {
     );
   }
 
+  static List<Weekday> _weekdaysWithStart(Weekday startOfTheWeek) =>
+      List.generate(
+        Weekday.values.length,
+        (index) => Weekday
+            .values[(startOfTheWeek.index + index) % Weekday.values.length],
+      );
+
   @override
   Widget build(BuildContext context) {
+    final orderedWeekdays = _weekdaysWithStart(
+        WeekdaysPickerTheme.of(context).startOfTheWeek ?? Weekday.sunday);
     final child = Padding(
       padding: const EdgeInsets.symmetric(vertical: 1.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: Weekday.values
+        children: orderedWeekdays
             .map((e) => _buildValue(context, e))
             .map<Widget>((e) => Padding(
                 padding: EdgeInsets.symmetric(
