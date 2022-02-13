@@ -316,7 +316,6 @@ class TimerPageController extends ControllerBase<TimerPageController>
         _tickerFactory = vsync {
     _addSectionController =
         addSubcontroller(AddSectionController.from(controllers.isNotEmpty));
-    init();
   }
 
   ValueListenable<UnmodifiableListView<TimerSectionController>> get _timers =>
