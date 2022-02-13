@@ -60,6 +60,7 @@ class ClockPreferencesController extends SubcontrollerBase<
   late final setShowSeconds = _showSeconds.setter;
   late final setAutoHomeTimezoneClock = _autoHomeTimezoneClock.setter;
   late final requestShowChangeDateTime = _didRequestShowChangeDateTime.notify;
+  late final setHomeTimezone = _homeTimezone.setter;
 }
 
 class AlarmsPreferencesController extends SubcontrollerBase<
