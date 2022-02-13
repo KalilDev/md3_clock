@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
 import 'package:md3_clock/components/current_time/controller.dart';
 import 'package:md3_clock/components/navigation_manager/controller.dart';
+import 'package:md3_clock/coordinator/coordinator.dart';
 import 'package:md3_clock/model/city.dart';
 import 'package:md3_clock/model/weekday.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
+import 'package:md3_clock/pages/preferences/controller.dart';
 import 'package:md3_clock/utils/chrono.dart';
 import 'package:md3_clock/widgets/switcher.dart';
 import 'package:value_notifier/value_notifier.dart';
@@ -33,7 +35,6 @@ class _ClockPageSpec {
 }
 
 class ClockHomePageController extends ControllerBase<ClockHomePageController> {
-  final ICreateTickers _vsync;
   final ValueNotifier<int> __index = ValueNotifier(0);
   late final List<NavigationItem> _navigationItems =
       pages.map((e) => e.item).toList();
@@ -50,52 +51,35 @@ class ClockHomePageController extends ControllerBase<ClockHomePageController> {
         ),
       );
 
-  final alarmPageController = AlarmPageController();
-  late final clockPageController = ClockPageController(
-    initialCities: [
-      City(
-        'Texas City',
-        'TX',
-        'EUA',
-        const Duration(hours: -6),
-      ),
-    ],
-    vsync: _vsync,
-    nextAlarm: NextAlarmViewModel(
-      Weekday.sunday,
-      const TimeOfDay(
-        hour: 00,
-        minute: 00,
-      ),
-    ),
-  );
-  late final timerPageController = TimerPageController(vsync: _vsync);
-  late final stopwatchPageController =
-      StopwatchPageController(_vsync.createTicker());
+  final AlarmPageController _alarmPageController;
+  final ClockPageController _clockPageController;
+  final TimerPageController _timerPageController;
+  final StopwatchPageController _stopwatchPageController;
+
   late final List<_ClockPageSpec> pages = [
     _ClockPageSpec(
       item: NavigationItem(labelText: 'Alarme', icon: const Icon(Icons.alarm)),
-      body: AlarmPage(controller: alarmPageController),
-      floatingActionButton: AlarmPageFab(controller: alarmPageController),
+      body: AlarmPage(controller: _alarmPageController),
+      floatingActionButton: AlarmPageFab(controller: _alarmPageController),
     ),
     _ClockPageSpec(
       item: NavigationItem(
           labelText: 'Relógio', icon: const Icon(Icons.access_time)),
-      body: ClockPage(controller: clockPageController),
-      floatingActionButton: ClockPageFab(controller: clockPageController),
+      body: ClockPage(controller: _clockPageController),
+      floatingActionButton: ClockPageFab(controller: _clockPageController),
     ),
     _ClockPageSpec(
       item: NavigationItem(labelText: 'Timer', icon: const Icon(Icons.stop)),
-      body: TimerPage(controller: timerPageController.handle),
+      body: TimerPage(controller: _timerPageController.handle),
       floatingActionButton:
-          TimerPageFab(controller: timerPageController.handle),
+          TimerPageFab(controller: _timerPageController.handle),
     ),
     _ClockPageSpec(
       item: NavigationItem(
           labelText: 'Cronômetro', icon: const Icon(Icons.timer_outlined)),
-      body: StopwatchPage(controller: stopwatchPageController),
+      body: StopwatchPage(controller: _stopwatchPageController),
       floatingActionButton:
-          StopwatchPageFab(controller: stopwatchPageController),
+          StopwatchPageFab(controller: _stopwatchPageController),
     ),
     _ClockPageSpec(
       item: NavigationItem(
@@ -104,7 +88,41 @@ class ClockHomePageController extends ControllerBase<ClockHomePageController> {
     ),
   ];
 
-  ClockHomePageController(this._vsync);
+  ClockHomePageController({
+    required ICreateTickers vsync,
+    required ControllerHandle<Coordinator> coordinator,
+  })  : _alarmPageController =
+            coordinator.unwrap.createController(() => AlarmPageController()),
+        _clockPageController = coordinator.unwrap.createController(
+          () => ClockPageController(
+            initialCities: [
+              const City(
+                'Texas City',
+                'TX',
+                'EUA',
+                Duration(hours: -6),
+              ),
+            ],
+            vsync: vsync,
+            nextAlarm: NextAlarmViewModel(
+              Weekday.sunday,
+              const TimeOfDay(
+                hour: 00,
+                minute: 00,
+              ),
+            ),
+            autoHomeTimezoneClock: true,
+            clockStyle: ClockStyle.analog,
+            homeTimezone: null,
+            showSeconds: false,
+          ),
+        ),
+        _timerPageController = coordinator.unwrap.createController(
+          () => TimerPageController(vsync: vsync),
+        ),
+        _stopwatchPageController = coordinator.unwrap.createController(
+          () => StopwatchPageController(vsync.createTicker()),
+        );
 
   void setIndex(int i) => __index.value = i;
 
@@ -112,11 +130,10 @@ class ClockHomePageController extends ControllerBase<ClockHomePageController> {
   void dispose() {
     IDisposable.disposeAll([
       __index,
-      _vsync,
-      alarmPageController,
-      clockPageController,
-      timerPageController,
-      stopwatchPageController,
+      _alarmPageController,
+      _clockPageController,
+      _timerPageController,
+      _stopwatchPageController,
     ]);
     super.dispose();
   }
@@ -132,7 +149,22 @@ class ClockHomePage extends StatefulWidget {
 class _ClockHomePageState extends State<ClockHomePage>
     with SingleTickerProviderStateMixin {
   late final vsync = FlutterTickerFactory(vsync: this);
-  late final controller = ClockHomePageController(vsync);
+  late final ClockHomePageController controller;
+  bool didInitController = false;
+
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!didInitController) {
+      controller = context.createController(
+        (_) => ClockHomePageController(
+          vsync: vsync,
+          coordinator: context.coordinator,
+        ),
+      );
+      didInitController = true;
+    }
+  }
+
   // TODO: using an global key results in it being used twice on the tree for some reason?
   final fabKey = UniqueKey();
   final _bodyKey = GlobalKey();
