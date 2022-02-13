@@ -9,6 +9,7 @@ import 'package:md3_clock/utils/chrono.dart';
 import 'package:value_notifier/value_notifier.dart';
 
 import '../../model/weekday.dart';
+import '../preferences/controller.dart';
 
 int _compareCity(City a, City b) {
   {
@@ -81,10 +82,18 @@ class ClockPageController extends ControllerBase<ClockPageController> {
   final SortedAnimatedListController<CityViewModel> clocksList;
   final ITick _ticker;
   final CurrentTimeControler currentTimeController;
+  final ValueNotifier<ClockStyle> _clockStyle;
+  final ValueNotifier<bool> _showSeconds;
+  final ValueNotifier<bool> _autoHomeTimezoneClock;
+  final ValueNotifier<Timezone?> _homeTimezone;
 
   ClockPageController({
     Iterable<City> initialCities = const [],
     NextAlarmViewModel? nextAlarm,
+    required ClockStyle clockStyle,
+    required bool showSeconds,
+    required bool autoHomeTimezoneClock,
+    required Timezone? homeTimezone,
     required ICreateTickers vsync,
   })  : clocksList = SortedAnimatedListController.from(
           initialCities.map(CityViewModel.fromCity),
@@ -93,7 +102,11 @@ class ClockPageController extends ControllerBase<ClockPageController> {
         _ticker = vsync.createTicker(),
         currentTimeController = CurrentTimeControler(
           nextAlarm: nextAlarm,
-        ) {
+        ),
+        _clockStyle = ValueNotifier(clockStyle),
+        _showSeconds = ValueNotifier(showSeconds),
+        _autoHomeTimezoneClock = ValueNotifier(autoHomeTimezoneClock),
+        _homeTimezone = ValueNotifier(homeTimezone) {
     init();
   }
 
@@ -104,6 +117,17 @@ class ClockPageController extends ControllerBase<ClockPageController> {
       .map((time) => time.toUtc())
       .map(TimeOfDay.fromDateTime)
       .unique();
+
+  ValueListenable<ClockStyle> get clockStyle => _clockStyle.view();
+  ValueListenable<bool> get showSeconds => _showSeconds.view();
+  ValueListenable<bool> get autoHomeTimezoneClock =>
+      _autoHomeTimezoneClock.view();
+  ValueListenable<Timezone?> get homeTimezone => _homeTimezone.view();
+
+  late final setClockStyle = _clockStyle.setter;
+  late final setShowSeconds = _showSeconds.setter;
+  late final setAutoHomeTimezoneClock = _autoHomeTimezoneClock.setter;
+  late final setHomeTimezone = _homeTimezone.setter;
 
   void onAddCity(City city) {
     clocksList.insert(CityViewModel.fromCity(city));
@@ -118,8 +142,10 @@ class ClockPageController extends ControllerBase<ClockPageController> {
   }
 
   void init() {
+    super.init();
     currentUtcTimeOfDay.tap(_onCurrentUtcTimeUpdate, includeInitial: true);
     _ticker.start();
+    clockStyle.connect(currentTimeController.setStyle);
   }
 
   void _onCurrentUtcTimeUpdate(TimeOfDay time) {
