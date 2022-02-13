@@ -53,9 +53,7 @@ class StopwatchPageController extends ControllerBase<StopwatchPageController> {
         _laps = ListValueNotifier.empty(),
         _totalElapsedTime = ValueNotifier(totalElapsedTime),
         _lapElapsedTime = ValueNotifier(lapElapsedTime),
-        _ticker = ticker {
-    init();
-  }
+        _ticker = ticker;
 
   ValueListenable<StopwatchState> get state => _state.view();
   ValueListenable<UnmodifiableListView<Lap>> get laps => _laps.view();
