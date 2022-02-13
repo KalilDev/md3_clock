@@ -18,7 +18,7 @@ class AnalogClock extends StatelessWidget {
     final secondsFrac = (seconds ?? 0) / 60;
     var minutesFrac = time.minute / 60;
     minutesFrac += secondsFrac / 60;
-    var hoursFrac = time.hour / 24;
+    var hoursFrac = time.hour / 12;
     hoursFrac += minutesFrac / 60;
     return AspectRatio(
       aspectRatio: 1,
