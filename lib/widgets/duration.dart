@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:material_widgets/material_widgets.dart';
+import 'package:md3_clock/model/time.dart';
 import 'package:md3_clock/utils/utils.dart';
 
 import '../model/duration_components.dart';
@@ -45,6 +46,38 @@ class DurationWidget extends StatelessWidget {
       padComponent: shouldPad,
       numberStyle: numberStyle,
       isNegative: time.isNegative,
+    );
+  }
+}
+
+class MomentOfDayWidget extends StatelessWidget {
+  const MomentOfDayWidget({
+    Key? key,
+    required this.momentOfDay,
+    this.numberStyle,
+    this.padHours = false,
+  }) : super(key: key);
+  final MomentOfDay momentOfDay;
+  final TextStyle? numberStyle;
+  final bool padHours;
+
+  @override
+  Widget build(BuildContext context) {
+    final timeComponents = [
+      momentOfDay.hour,
+      momentOfDay.minute,
+      momentOfDay.second,
+    ];
+    final shouldPad = [
+      padHours,
+      true,
+      true,
+    ];
+
+    return TimeComponentsWidget(
+      components: timeComponents,
+      padComponent: shouldPad,
+      numberStyle: numberStyle,
     );
   }
 }
