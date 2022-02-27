@@ -9,9 +9,11 @@ import 'package:md3_clock/model/weekday.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
 import 'package:md3_clock/pages/preferences/controller.dart';
 import 'package:md3_clock/utils/chrono.dart';
+import 'package:md3_clock/widgets/icon/generated_resources.dart';
 import 'package:md3_clock/widgets/switcher.dart';
 import 'package:value_notifier/value_notifier.dart';
 
+import '../../widgets/icon/widget.dart';
 import '../alarm/controller.dart';
 import '../alarm/widget.dart';
 import '../stopwatch/controller.dart';
@@ -58,32 +60,79 @@ class ClockHomePageController extends ControllerBase<ClockHomePageController> {
 
   late final List<_ClockPageSpec> pages = [
     _ClockPageSpec(
-      item: NavigationItem(labelText: 'Alarme', icon: const Icon(Icons.alarm)),
+      item: NavigationItem(
+        labelText: 'Alarme',
+        icon: ActivatableAnimatedVectorIcon(
+          icon: avd_tab_alarm_white_24dp.body,
+          isActive: false,
+        ),
+        activeIcon: ActivatableAnimatedVectorIcon(
+          icon: avd_tab_alarm_white_24dp.body,
+          isActive: true,
+        ),
+      ),
       body: AlarmPage(controller: _alarmPageController),
       floatingActionButton: AlarmPageFab(controller: _alarmPageController),
     ),
     _ClockPageSpec(
       item: NavigationItem(
-          labelText: 'Relógio', icon: const Icon(Icons.access_time)),
+        labelText: 'Relógio',
+        icon: ActivatableAnimatedVectorIcon(
+          icon: avd_tab_clock_white_24dp.body,
+          isActive: false,
+        ),
+        activeIcon: ActivatableAnimatedVectorIcon(
+          icon: avd_tab_clock_white_24dp.body,
+          isActive: true,
+        ),
+      ),
       body: ClockPage(controller: _clockPageController),
       floatingActionButton: ClockPageFab(controller: _clockPageController),
     ),
     _ClockPageSpec(
-      item: NavigationItem(labelText: 'Timer', icon: const Icon(Icons.stop)),
+      item: NavigationItem(
+        labelText: 'Timer',
+        icon: ActivatableAnimatedVectorIcon(
+          icon: avd_tab_timer_white_24dp.body,
+          isActive: false,
+        ),
+        activeIcon: ActivatableAnimatedVectorIcon(
+          icon: avd_tab_timer_white_24dp.body,
+          isActive: true,
+        ),
+      ),
       body: TimerPage(controller: _timerPageController.handle),
       floatingActionButton:
           TimerPageFab(controller: _timerPageController.handle),
     ),
     _ClockPageSpec(
       item: NavigationItem(
-          labelText: 'Cronômetro', icon: const Icon(Icons.timer_outlined)),
+        labelText: 'Cronômetro',
+        icon: ActivatableAnimatedVectorIcon(
+          icon: avd_tab_stopwatch_white_24dp.body,
+          isActive: false,
+        ),
+        activeIcon: ActivatableAnimatedVectorIcon(
+          icon: avd_tab_stopwatch_white_24dp.body,
+          isActive: true,
+        ),
+      ),
       body: StopwatchPage(controller: _stopwatchPageController),
       floatingActionButton:
           StopwatchPageFab(controller: _stopwatchPageController),
     ),
     _ClockPageSpec(
       item: NavigationItem(
-          labelText: 'Dormir', icon: const Icon(Icons.bed_rounded)),
+        labelText: 'Dormir',
+        icon: ActivatableAnimatedVectorIcon(
+          icon: avd_tab_bedtime_white_24dp.body,
+          isActive: false,
+        ),
+        activeIcon: ActivatableAnimatedVectorIcon(
+          icon: avd_tab_bedtime_white_24dp.body,
+          isActive: true,
+        ),
+      ),
       body: const SleepPage(),
     ),
   ];
