@@ -9,6 +9,7 @@ import 'package:md3_clock/widgets/weekday_picker.dart';
 import 'package:value_notifier/value_notifier.dart';
 
 import '../../model/weekday.dart';
+import '../../widgets/list_tile.dart';
 import '../home/home.dart';
 
 enum _MenuDestination {
@@ -129,7 +130,7 @@ class _StartOfTheWeekTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => weekday
       .map(
-        (weekday) => _MenuListTile<Weekday>(
+        (weekday) => MD3MenuListTile<Weekday>(
           title: const Text('Começar a semana em'),
           initialValue: weekday,
           menuKind: MD3PopupMenuKind.selection,
@@ -158,7 +159,7 @@ class _StyleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => style
       .map(
-        (style) => _MenuListTile<ClockStyle>(
+        (style) => MD3MenuListTile<ClockStyle>(
           title: const Text('Estilo'),
           initialValue: style,
           menuKind: MD3PopupMenuKind.selection,
@@ -203,12 +204,12 @@ class _PreferencesSliverList extends StatelessWidget {
         style: clock.style,
         onChanged: clock.setStyle,
       ),
-      _SwitchValueListenableListTile(
+      MD3SwitchValueListenableListTile(
         title: Text('Exibir horário com segundos'),
         value: clock.showSeconds,
         onChanged: clock.setShowSeconds,
       ),
-      _SwitchValueListenableListTile(
+      MD3SwitchValueListenableListTile(
         title: Text('Relógio de casa automático'),
         subtitle: Text('Ao viajar para outro fuso horário, adicionar um '
             'relógio para casa.'),
@@ -218,7 +219,7 @@ class _PreferencesSliverList extends StatelessWidget {
       _HomeTimezoneTile(
         controller: clock,
       ),
-      _ListTile(
+      MD3ListTile(
         title: Text('Alterar data e hora'),
         onTap: clock.requestShowChangeDateTime,
       ),
@@ -235,7 +236,7 @@ class _PreferencesSliverList extends StatelessWidget {
       ),
       alarms.volumeButtonsBehavior
           .map(
-            (volumeButtonsBehavior) => _MenuListTile<VolumeButtonsBehavior>(
+            (volumeButtonsBehavior) => MD3MenuListTile<VolumeButtonsBehavior>(
               title: const Text('Botões de volume'),
               initialValue: volumeButtonsBehavior,
               menuKind: MD3PopupMenuKind.selection,
@@ -261,7 +262,7 @@ class _PreferencesSliverList extends StatelessWidget {
     final timer = controller.timers.unwrap;
     return [
       const _SectionStartTitleAndSpacing(title: 'Timers'),
-      _SwitchValueListenableListTile(
+      MD3SwitchValueListenableListTile(
         title: Text('Vibração do timer'),
         value: timer.vibrate,
         onChanged: timer.setVibrate,
@@ -277,8 +278,9 @@ class _PreferencesSliverList extends StatelessWidget {
         style: screensaver.style,
         onChanged: screensaver.setStyle,
       ),
-      _SwitchValueListenableListTile(
+      MD3SwitchValueListenableListTile(
         title: Text('Modo noturno'),
+        subtitle: Text('Tela com iluminação mínima (para salas escuras)'),
         value: screensaver.nightMode,
         onChanged: screensaver.setNightMode,
       ),
@@ -313,7 +315,7 @@ class _AlarmVolumeTile extends StatelessWidget {
   void _onChanged(double v) => onChanged!(v.toInt());
 
   @override
-  Widget build(BuildContext context) => _ListTile(
+  Widget build(BuildContext context) => MD3ListTile(
         leading: Icon(Icons.alarm),
         title: Padding(
           padding: EdgeInsets.only(left: 24),
@@ -350,7 +352,7 @@ class _HomeTimezoneTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => controller.autoHomeTimezoneClock
-      .map((autoHomeTimezoneClock) => _ListTile(
+      .map((autoHomeTimezoneClock) => MD3ListTile(
             title: Text('Fuso horário de casa'),
             onTap: _onTap,
             disabled: !autoHomeTimezoneClock,
@@ -369,239 +371,6 @@ class _SectionDivider extends StatelessWidget {
         endIndent: 0.0,
         color: context.colorScheme.outline,
       );
-}
-
-class _SwitchValueListenableListTile extends StatelessWidget {
-  const _SwitchValueListenableListTile({
-    Key? key,
-    required this.title,
-    this.subtitle,
-    this.leading,
-    required this.value,
-    this.onChanged,
-    this.onLongPress,
-  }) : super(key: key);
-  final Widget title;
-  final Widget? subtitle;
-  final Widget? leading;
-  final ValueListenable<bool> value;
-  final void Function(bool)? onChanged;
-  final VoidCallback? onLongPress;
-
-  @override
-  Widget build(BuildContext context) => value
-      .map((value) => _SwitchListTile(
-            title: title,
-            subtitle: subtitle,
-            leading: leading,
-            value: value,
-            onChanged: onChanged,
-            onLongPress: onLongPress,
-          ))
-      .build();
-}
-
-class _MenuListTile<T> extends StatefulWidget {
-  const _MenuListTile({
-    Key? key,
-    this.initialValue,
-    required this.itemBuilder,
-    this.onSelected,
-    this.onCancel,
-    required this.title,
-    this.subtitle,
-    this.menuKind,
-  }) : super(key: key);
-  final T? initialValue;
-  final List<MD3PopupMenuEntry<T>> Function(BuildContext) itemBuilder;
-  final ValueChanged<T>? onSelected;
-  final VoidCallback? onCancel;
-  final Widget title;
-  final Widget? subtitle;
-  final MD3PopupMenuKind? menuKind;
-
-  @override
-  State<_MenuListTile<T>> createState() => _MenuListTileState<T>();
-}
-
-class _MenuListTileState<T> extends State<_MenuListTile<T>> {
-  final GlobalKey titleKey = GlobalKey();
-  void _onTap() {
-    final selfRect = rectFromContext(context);
-    final titleRect = rectFromContext(titleKey.currentContext!);
-    // TODO:
-    final targetRect = RelativeRect.fromLTRB(
-      max(selfRect.left, titleRect.right + 16),
-      selfRect.top,
-      selfRect.right,
-      selfRect.bottom,
-    );
-
-    showMD3Menu<T>(
-            context: context,
-            position: titleRect,
-            items: widget.itemBuilder(context),
-            initialValue: widget.initialValue,
-            menuKind: widget.menuKind)
-        .then(
-      (e) => e is T ? widget.onSelected?.call(e) : widget.onCancel?.call(),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => _ListTile(
-        title: KeyedSubtree(
-          key: titleKey,
-          child: widget.title,
-        ),
-        subtitle: widget.subtitle,
-        onTap: _onTap,
-        disabled: widget.onSelected == null,
-      );
-}
-
-class _SwitchListTile extends StatelessWidget {
-  const _SwitchListTile({
-    Key? key,
-    required this.title,
-    this.subtitle,
-    this.leading,
-    required this.value,
-    this.onChanged,
-    this.onLongPress,
-  }) : super(key: key);
-  final Widget title;
-  final Widget? subtitle;
-  final Widget? leading;
-  final bool value;
-  final void Function(bool)? onChanged;
-  final VoidCallback? onLongPress;
-
-  void _onTap() => onChanged?.call(!value);
-
-  @override
-  Widget build(BuildContext context) => _ListTile(
-        title: title,
-        subtitle: subtitle,
-        onTap: _onTap,
-        onLongPress: onLongPress,
-        leading: leading,
-        trailing: MD3Switch(
-          value: value,
-          onChanged: onChanged,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        disabled: onChanged == null,
-      );
-}
-
-class _ListTile extends StatelessWidget {
-  const _ListTile({
-    Key? key,
-    required this.title,
-    this.subtitle,
-    this.leading,
-    this.trailing,
-    this.onTap,
-    this.onLongPress,
-    this.disabled = false,
-  }) : super(key: key);
-  final Widget title;
-  final Widget? subtitle;
-  final Widget? leading;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
-  final bool disabled;
-
-  static const _kTextStyleDuration = kThemeChangeDuration;
-
-  Widget _text(
-    BuildContext context,
-    Color foreground,
-    Color foregroundVariant,
-  ) =>
-      Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AnimatedDefaultTextStyle(
-              duration: _kTextStyleDuration,
-              style: context.textTheme.titleSmall.copyWith(
-                color: foreground,
-                height: 20 / 15.5,
-                fontSize: 15.5,
-              ),
-              child: title,
-            ),
-            if (subtitle != null)
-              AnimatedDefaultTextStyle(
-                duration: _kTextStyleDuration,
-                style: context.textTheme.bodyMedium.copyWith(
-                  color: foregroundVariant,
-                  height: 18 / 13.1,
-                  fontSize: 13.1,
-                ),
-                child: subtitle!,
-              )
-          ],
-        ),
-      );
-
-  @override
-  Widget build(BuildContext context) {
-    const enabled = <MaterialState>{};
-    const disabled = <MaterialState>{MaterialState.disabled};
-
-    final states = this.disabled ? disabled : enabled;
-
-    final foreground = MD3DisablableColor(context.colorScheme.onSurface);
-    final foregroundVariant =
-        MD3DisablableColor(context.colorScheme.onSurfaceVariant);
-
-    final effectiveForeground = foreground.resolve(states);
-    final effectiveForegroundVariant = foregroundVariant.resolve(states);
-
-    return InkWell(
-      onTap: this.disabled ? null : onTap,
-      onLongPress: this.disabled ? null : onLongPress,
-      mouseCursor: MaterialStateMouseCursor.clickable,
-      overlayColor: MD3StateOverlayColor(
-        context.colorScheme.onSurface,
-        context.stateOverlayOpacity,
-      ),
-      child: IconTheme.merge(
-        data: IconThemeData(
-          opacity: effectiveForegroundVariant.opacity,
-          color: effectiveForegroundVariant,
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (leading != null) ...[
-                leading!,
-                const SizedBox(width: 16),
-              ],
-              Expanded(
-                child: _text(
-                  context,
-                  effectiveForeground,
-                  effectiveForegroundVariant,
-                ),
-              ),
-              if (trailing != null) ...[
-                const SizedBox(width: 16),
-                trailing!,
-              ]
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _SectionStartTitleAndSpacing extends StatelessWidget {
