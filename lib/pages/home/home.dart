@@ -16,13 +16,13 @@ import 'package:value_notifier/value_notifier.dart';
 import '../../widgets/icon/widget.dart';
 import '../alarm/controller.dart';
 import '../alarm/widget.dart';
+import '../sleep/widget.dart';
 import '../stopwatch/controller.dart';
 import '../stopwatch/widget.dart';
 import '../timer/controller.dart';
 import '../timer/widget.dart';
 import '../world_clock/controller.dart';
 import '../world_clock/widget.dart';
-import 'sleep.dart';
 
 class _ClockPageSpec {
   const _ClockPageSpec({
@@ -268,20 +268,9 @@ class _ClockHomePageState extends State<ClockHomePage>
           : null);
 
   PreferredSizeWidget _appBar() => MD3SmallAppBar(
-        title: controller.currentPage.build(
+        title: controller.currentPage.buildView(
           builder: (context, page, _) => Text(page.title),
         ),
-        // Apply the same margin as the scaffold body and remove the leading
-        // placeholder, so that the appbar title is aligned with the body
-        // elements.
-        implyLeadingPlaceholder: false,
-        titleSpacing: 24,
-        /*MD3ScaffoldBody.marginFor(
-        MediaQuery.of(context).size.width,
-        context.sizeClass,
-        minMargin: ClockNavigationDelegate.kBodyMinimumMargin,
-        maxMargin: ClockNavigationDelegate.kBodyMaximumMargin,
-      ),*/
         actions: [
           Builder(
             builder: (context) => IconButton(
