@@ -139,6 +139,19 @@ class _AnalogClock extends StatelessWidget {
   }) : super(key: key);
   final CurrentTimeControler controller;
 
+  Widget _buildClock(BuildContext context) => controller.showSeconds
+      .bind(
+        (showSeconds) => showSeconds
+            ? controller.currentMoment.map((moment) => AnalogClock(
+                  time: moment.toTimeOfDay(),
+                  seconds: moment.second,
+                ))
+            : controller.currentTime.map((time) => AnalogClock(
+                  time: time,
+                )),
+      )
+      .build();
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -146,11 +159,7 @@ class _AnalogClock extends StatelessWidget {
       width: 312,
       child: AspectRatio(
         aspectRatio: 1,
-        child: controller.currentTime.build(
-          builder: (context, time, _) => AnalogClock(
-            time: time,
-          ),
-        ),
+        child: _buildClock(context),
       ),
     );
   }
@@ -182,13 +191,21 @@ class _DigitalClock extends StatelessWidget {
           .instance.clockTextTheme.currentTimeDisplay
           .resolveTo(context.deviceType);
     }
-    return controller.currentTime.build(
-      builder: (context, time, _) => TimeOfDayWidget(
-        timeOfDay: time,
-        padHours: true,
-        numberStyle: numberStyle,
-      ),
-    );
+    return controller.showSeconds
+        .bind(
+          (showSeconds) => showSeconds
+              ? controller.currentMoment.map((moment) => MomentOfDayWidget(
+                    momentOfDay: moment,
+                    padHours: true,
+                    numberStyle: numberStyle,
+                  ))
+              : controller.currentTime.map((time) => TimeOfDayWidget(
+                    timeOfDay: time,
+                    padHours: true,
+                    numberStyle: numberStyle,
+                  )),
+        )
+        .build();
   }
 }
 
