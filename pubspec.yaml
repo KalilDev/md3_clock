@@ -40,6 +40,8 @@ dependencies:
     path: ../value_notifier
   md3_clock_typography:
     path: md3_clock_typography
+  vector_drawable:
+    path: ../vector_drawable
 
 dev_dependencies:
   flutter_test:
