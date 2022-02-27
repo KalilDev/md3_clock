@@ -106,7 +106,10 @@ class AlarmsPreferencesController extends SubcontrollerBase<
       _volumeButtonsBehavior.view();
   ValueListenable<Weekday> get startOfTheWeek => _startOfTheWeek.view();
 
+  late final setSilenceAfter = _silenceAfter.setter;
+  late final setSnoozeDuration = _snoozeDuration.setter;
   late final setVolume = _volume.setter;
+  late final setVolumeIncreaseDuration = _volumeIncreaseDuration.setter;
   late final setStartOfTheWeek = _startOfTheWeek.setter;
   late final setVolumeButtonsBehavior = _volumeButtonsBehavior.setter;
 }
@@ -136,6 +139,7 @@ class TimersPreferencesController extends SubcontrollerBase<
       _volumeIncreaseDuration.view();
   ValueListenable<bool> get vibrate => _vibrate.view();
 
+  late final setVolumeIncreaseDuration = _volumeIncreaseDuration.setter;
   late final setVibrate = _vibrate.setter;
 }
 

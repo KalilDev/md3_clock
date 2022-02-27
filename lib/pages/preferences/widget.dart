@@ -28,6 +28,99 @@ extension on _MenuDestination {
   }
 }
 
+class _Result<T> {
+  final T value;
+
+  _Result(this.value);
+}
+
+class _SelectionDialogListTile<T> extends StatelessWidget {
+  const _SelectionDialogListTile({
+    Key? key,
+    required this.title,
+    required this.items,
+    required this.selectedItem,
+    required this.onSelected,
+    required this.buildItemLabel,
+  }) : super(key: key);
+  final Widget title;
+  final List<T> items;
+  final T selectedItem;
+  final ValueChanged<T> onSelected;
+  final Widget Function(BuildContext context, T) buildItemLabel;
+
+  Future<_Result<T>?> _showDialog(BuildContext context) =>
+      showDialog<_Result<T>>(
+        context: context,
+        builder: (context) => _SelectionDialog<T>(
+          title: title,
+          items: items,
+          buildItemLabel: buildItemLabel,
+          selectedItem: selectedItem,
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) => MD3ListTile(
+        title: title,
+        subtitle: Builder(
+          builder: (context) => buildItemLabel(context, selectedItem),
+        ),
+        onTap: () => _showDialog(context).then(
+          (result) => result == null ? null : onSelected(result.value),
+        ),
+      );
+}
+
+class _SelectionDialog<T> extends StatelessWidget {
+  const _SelectionDialog({
+    Key? key,
+    required this.title,
+    required this.items,
+    this.selectedItem,
+    required this.buildItemLabel,
+  }) : super(key: key);
+  final Widget title;
+  final List<T> items;
+  final T? selectedItem;
+  final Widget Function(BuildContext context, T) buildItemLabel;
+
+  void _pop(BuildContext context, T item) =>
+      Navigator.of(context).pop<_Result<T>>(_Result(item));
+
+  Widget _buildItem(BuildContext context, T item) => MD3ListTile(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        leading: Radio<T>(
+          value: item,
+          groupValue: selectedItem,
+          onChanged: (_) => _pop(context, item),
+        ),
+        title: buildItemLabel(context, item),
+        onTap: () => _pop(context, item),
+      );
+
+  @override
+  Widget build(BuildContext context) => MD3BasicDialog(
+        title: title,
+        scrollable: true,
+        content: ListBody(
+          children: List.generate(
+            items.length,
+            (i) => _buildItem(
+              context,
+              items[i],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: Navigator.of(context).pop<_Result<T>>,
+            child: Text('Cancelar'),
+          )
+        ],
+      );
+}
+
 class PreferencesPage extends StatelessWidget {
   const PreferencesPage({
     Key? key,
@@ -226,13 +319,56 @@ class _PreferencesSliverList extends StatelessWidget {
     ];
   }
 
+  static final _kSilenceDurations = List.generate(
+    7,
+    (index) => index == 6
+        ? null
+        : Duration(
+            minutes: index == 0 ? 1 : index * 5,
+          ),
+  );
+  static final _kSnoozeDurations =
+      List.generate(30, (index) => Duration(minutes: index + 1));
+
   List<Widget> _alarmsSection(BuildContext context) {
     final alarms = controller.alarms.unwrap;
     return [
       const _SectionStartTitleAndSpacing(title: 'Alarmes'),
+      alarms.silenceAfter
+          .map(
+            (silenceAfter) => _SelectionDialogListTile<Duration?>(
+              title: Text('Silenciar depois de'),
+              items: _kSilenceDurations,
+              selectedItem: silenceAfter,
+              onSelected: alarms.setSilenceAfter,
+              buildItemLabel: (context, duration) => Text(
+                duration == null
+                    ? 'Nunca'
+                    : '${duration.inMinutes} minuto${duration.inMinutes > 1 ? 's' : ''}',
+              ),
+            ),
+          )
+          .build(),
+      alarms.snoozeDuration
+          .map(
+            (snoozeDuration) => _SelectionDialogListTile<Duration>(
+              title: Text('Duração da soneca'),
+              items: _kSnoozeDurations,
+              selectedItem: snoozeDuration,
+              onSelected: alarms.setSnoozeDuration,
+              buildItemLabel: (context, duration) => Text(
+                '${duration.inMinutes} minuto${duration.inMinutes > 1 ? 's' : ''}',
+              ),
+            ),
+          )
+          .build(),
       _AlarmVolumeTile(
         value: alarms.volume,
         onChanged: alarms.setVolume,
+      ),
+      _VolumeIncreaseTile(
+        value: alarms.volumeIncreaseDuration,
+        onChanged: alarms.setVolumeIncreaseDuration,
       ),
       alarms.volumeButtonsBehavior
           .map(
@@ -262,6 +398,10 @@ class _PreferencesSliverList extends StatelessWidget {
     final timer = controller.timers.unwrap;
     return [
       const _SectionStartTitleAndSpacing(title: 'Timers'),
+      _VolumeIncreaseTile(
+        value: timer.volumeIncreaseDuration,
+        onChanged: timer.setVolumeIncreaseDuration,
+      ),
       MD3SwitchValueListenableListTile(
         title: Text('Vibração do timer'),
         value: timer.vibrate,
@@ -301,6 +441,34 @@ class _PreferencesSliverList extends StatelessWidget {
           ],
         ),
       );
+}
+
+class _VolumeIncreaseTile extends StatelessWidget {
+  const _VolumeIncreaseTile({
+    Key? key,
+    required this.value,
+    required this.onChanged,
+  }) : super(key: key);
+  final ValueListenable<Duration?> value;
+  final ValueChanged<Duration?> onChanged;
+
+  static final _kGradualIncreaseDurations = List.generate(
+      13, (index) => index == 0 ? null : Duration(seconds: index * 5));
+
+  @override
+  Widget build(BuildContext context) => value
+      .map(
+        (volumeIncreaseDuration) => _SelectionDialogListTile<Duration?>(
+          title: Text('Aumentar gradualmente o volume'),
+          items: _kGradualIncreaseDurations,
+          selectedItem: volumeIncreaseDuration,
+          onSelected: onChanged,
+          buildItemLabel: (context, duration) => Text(
+            duration == null ? 'Nunca' : '${duration.inSeconds} segundos',
+          ),
+        ),
+      )
+      .build();
 }
 
 class _AlarmVolumeTile extends StatelessWidget {
