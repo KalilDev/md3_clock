@@ -44,22 +44,26 @@ class ClockNavigationDelegate extends MD3NavigationDelegate {
           .buildView(
             builder: (context, isScrolledUnder, child) => NavigationBarTheme(
               data: NavigationBarTheme.of(context).copyWith(
-                labelBehavior: useSmallAppBars
-                    ? NavigationDestinationLabelBehavior.alwaysHide
-                    : null,
-                height: useSmallAppBars ? 52 : 79,
-                backgroundColor: MD3ElevationTintableColor(
-                  context.colorScheme.surface,
-                  MD3ElevationLevel.surfaceTint(context.colorScheme),
-                  MD3MaterialStateElevation.resolveWith(
-                    (states) => states.contains(MaterialState.scrolledUnder)
-                        ? context.elevation.level2
-                        : context.elevation.level1,
-                  ),
-                ).resolve({
-                  if (isScrolledUnder) MaterialState.scrolledUnder,
-                }),
-              ),
+                  labelBehavior: useSmallAppBars
+                      ? NavigationDestinationLabelBehavior.alwaysHide
+                      : null,
+                  height: useSmallAppBars ? 52 : 79,
+                  backgroundColor: MD3ElevationTintableColor(
+                    context.colorScheme.surface,
+                    MD3ElevationLevel.surfaceTint(context.colorScheme),
+                    MD3MaterialStateElevation.resolveWith(
+                      (states) => states.contains(MaterialState.scrolledUnder)
+                          ? context.elevation.level2
+                          : context.elevation.level1,
+                    ),
+                  ).resolve({
+                    if (isScrolledUnder) MaterialState.scrolledUnder,
+                  }),
+                  iconTheme: MaterialStateProperty.resolveWith((states) =>
+                      IconThemeData(
+                          color: states.contains(MaterialState.selected)
+                              ? context.colorScheme.onSecondaryContainer
+                              : context.colorScheme.onSurface))),
               child: child!,
             ),
             child: buildNavigationBar(spec),
