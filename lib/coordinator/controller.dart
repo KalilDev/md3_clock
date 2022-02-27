@@ -4,6 +4,15 @@ import 'package:md3_clock/pages/preferences/controller.dart';
 import 'package:md3_clock/pages/world_clock/controller.dart';
 import 'package:value_notifier/value_notifier.dart';
 
+import '../pages/alarm/controller.dart';
+
+class _PreferencesAndAlarmsPage {
+  final ControllerHandle<PreferencesController> prefsHandle;
+  final ControllerHandle<AlarmPageController> alarmHandle;
+
+  _PreferencesAndAlarmsPage(this.prefsHandle, this.alarmHandle);
+}
+
 class _PreferencesAndClockPage {
   final ControllerHandle<PreferencesController> prefsHandle;
   final ControllerHandle<ClockPageController> clockHandle;
@@ -17,8 +26,11 @@ class PreferencesCoordinatorComponent
       _preferencesController = EventNotifier();
   final EventNotifier<ControllerHandle<ClockPageController>>
       _clockPageController = EventNotifier();
+  final EventNotifier<ControllerHandle<AlarmPageController>>
+      _alarmPageController = EventNotifier();
 
   IDisposable _clockPageConnection = IDisposable.none();
+  IDisposable _alarmPageConnection = IDisposable.none();
 
   void _onPreferencesAndClockPage(
     ControllerHandle<PreferencesController> prefsHandle,
@@ -44,6 +56,21 @@ class PreferencesCoordinatorComponent
     ]);
   }
 
+  void _onPreferencesAndAlarmPage(
+    ControllerHandle<PreferencesController> prefsHandle,
+    ControllerHandle<AlarmPageController> alarmHandle,
+  ) {
+    final alarmPrefs = prefsHandle.unwrap.alarms.unwrap;
+    final alarmPage = alarmHandle.unwrap;
+    print('connecting');
+    _alarmPageConnection.dispose();
+    _alarmPageConnection = IDisposable.merge([
+      alarmPrefs.startOfTheWeek.connect(
+        alarmPage.setStartOfTheWeek,
+      ),
+    ]);
+  }
+
   @override
   void registerPreInit<Controller extends ControllerBase<Controller>>(
       ControllerHandle<Controller> controller) {
@@ -57,6 +84,10 @@ class PreferencesCoordinatorComponent
       case ClockPageController:
         _clockPageController
             .add(controller as ControllerHandle<ClockPageController>);
+        break;
+      case AlarmPageController:
+        _alarmPageController
+            .add(controller as ControllerHandle<AlarmPageController>);
         break;
     }
   }
@@ -74,6 +105,14 @@ class PreferencesCoordinatorComponent
           canBindEagerly: false,
         )
         .tap((e) => _onPreferencesAndClockPage(e.prefsHandle, e.clockHandle));
+    _preferencesController
+        .viewNexts()
+        .bind(
+          (prefsHandle) => _alarmPageController.viewNexts().map((alarmHandle) =>
+              _PreferencesAndAlarmsPage(prefsHandle, alarmHandle)),
+          canBindEagerly: false,
+        )
+        .tap((e) => _onPreferencesAndAlarmPage(e.prefsHandle, e.alarmHandle));
     print('init');
   }
 
