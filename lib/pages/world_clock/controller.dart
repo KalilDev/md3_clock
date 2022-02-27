@@ -40,6 +40,13 @@ int _compareCityViewModel(CityViewModel a, CityViewModel b) {
   return _compareCity(a.city, b.city);
 }
 
+bool _dateTimeEqualsByMinute(DateTime a, DateTime b) =>
+    a.year == b.year &&
+    a.month == b.month &&
+    a.day == b.day &&
+    a.hour == b.hour &&
+    a.minute == b.minute;
+
 // The current time is stored in the model because every city can be mutated
 // in a single [SortedAnimatedListController.mutate] call and rebuilding the
 // entire list, instead of many calls with numerous notifyListeners and
@@ -107,9 +114,7 @@ class ClockPageController extends ControllerBase<ClockPageController> {
         _clockStyle = ValueNotifier(clockStyle),
         _showSeconds = ValueNotifier(showSeconds),
         _autoHomeTimezoneClock = ValueNotifier(autoHomeTimezoneClock),
-        _homeTimezone = ValueNotifier(homeTimezone) {
-    init();
-  }
+        _homeTimezone = ValueNotifier(homeTimezone);
 
   ValueListenable<DateTime> get currentLocalTime => _ticker.elapsedTick
       .map((_) => DateTime.now())
@@ -118,9 +123,7 @@ class ClockPageController extends ControllerBase<ClockPageController> {
   ValueListenable<DateTime> get currentUTCTime =>
       currentLocalTime.map((time) => time.toUtc());
   ValueListenable<DateTime> get currentLocalTimeByMinute =>
-      currentLocalTime.unique((a, b) =>
-          (a.millisecondsSinceEpoch / Duration.millisecondsPerMinute) ==
-          (b.millisecondsSinceEpoch / Duration.millisecondsPerMinute));
+      currentLocalTime.unique(_dateTimeEqualsByMinute);
   ValueListenable<DateTime> get currentUTCTimeByMinute =>
       currentLocalTimeByMinute.map((time) => time.toUtc());
   ValueListenable<DateTime> get currentLocalTimeTick =>
@@ -152,16 +155,26 @@ class ClockPageController extends ControllerBase<ClockPageController> {
     currentTimeController.updateNextAlarm(nextAlarm);
   }
 
+  ValueListenable<DateTime> get _clockListTimeTick => showSeconds.bind(
+        (showSeconds) => !showSeconds
+            ? currentLocalTimeByMinute
+            : clockStyle.bind(
+                (style) => style == ClockStyle.analog
+                    ? currentLocalTime
+                    : currentLocalTimeByMinute,
+              ),
+      );
+
   void init() {
     super.init();
-    currentLocalTimeTick.connect(_onCurrentTimeUpdate);
+    currentLocalTimeTick.connect(_updateCurrentTime);
+    _clockListTimeTick.connect(_updateClocksList);
     _ticker.start();
     clockStyle.connect(currentTimeController.setStyle);
     showSeconds.connect(currentTimeController.setShowSeconds);
   }
 
-  void _onCurrentTimeUpdate(DateTime now) {
-    currentTimeController.updateLocalTime(now);
+  void _updateClocksList(DateTime now) {
     final nowUtc = now.toUtc();
     final currentTimeZoneUtcDifference = now.timeZoneOffset;
     final timeOfDayUtc = DateTime.utc(
@@ -180,5 +193,9 @@ class ClockPageController extends ControllerBase<ClockPageController> {
         );
       }
     });
+  }
+
+  void _updateCurrentTime(DateTime now) {
+    currentTimeController.updateLocalTime(now);
   }
 }
