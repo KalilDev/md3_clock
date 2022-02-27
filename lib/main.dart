@@ -76,6 +76,7 @@ class _MyAppState extends State<MyApp> {
                 routes: const {'/preferences': _preferencesRouteBuilder},
                 home: const ClockHomePage(),
                 builder: (context, home) => _DesktopOverlays(
+                  navigatorKey: navigatorKey,
                   child: home!,
                 ),
               ),
@@ -91,8 +92,10 @@ class _DesktopOverlays extends StatelessWidget {
   const _DesktopOverlays({
     Key? key,
     required this.child,
+    required this.navigatorKey,
   }) : super(key: key);
   final Widget child;
+  final GlobalKey<NavigatorState> navigatorKey;
 
   static const _kDesktopPlatforms = {
     TargetPlatform.macOS,
@@ -158,6 +161,7 @@ class _DesktopOverlays extends StatelessWidget {
             type: MaterialType.transparency,
             child: _BottomNavbar(
               isVertical: !isPortrait,
+              navigatorKey: navigatorKey,
             ),
           ),
         ),
@@ -234,29 +238,74 @@ class _BottomNavbar extends StatelessWidget {
   const _BottomNavbar({
     Key? key,
     required this.isVertical,
+    required this.navigatorKey,
   }) : super(key: key);
 
   final bool isVertical;
+  final GlobalKey<NavigatorState> navigatorKey;
 
   static const _kIconHeight = 10.0;
+
+  Future<void> _onTap() async {
+    final nav = navigatorKey.currentState!;
+    await nav.maybePop();
+  }
+
+  Future<void> _onTapHome() async {
+    final nav = navigatorKey.currentState!;
+    nav.popUntil((route) => route.isFirst);
+  }
+
+  Widget _buildContainer(
+    BuildContext context, {
+    required Widget child,
+  }) =>
+      SizedBox(
+        height: isVertical ? 104 : double.infinity,
+        width: isVertical ? double.infinity : 104,
+        child: Center(
+          child: child,
+        ),
+      );
+
+  Widget _buildNavBack(BuildContext context) => InkWell(
+        customBorder: StadiumBorder(),
+        onTap: _onTap,
+        child: _buildContainer(
+          context,
+          child: Icon(Icons.chevron_left),
+        ),
+      );
+  Widget _buildNavHome(BuildContext context) => InkWell(
+        customBorder: StadiumBorder(),
+        onTap: _onTapHome,
+        child: _buildContainer(
+          context,
+          child: Builder(
+              builder: (context) => Material(
+        elevation: 0,
+        shape: StadiumBorder(),
+                    color: IconTheme.of(context).color!.withOpacity(0.8),
+        child: SizedBox(
+          width: 28,
+          height: _kIconHeight,
+        ),
+                  )),
+      ),
+      );
 
   @override
   Widget build(BuildContext context) {
     const iconColor = Colors.white;
     final children = [
-      Icon(Icons.chevron_left),
-      Material(
-        elevation: 0,
-        shape: StadiumBorder(),
-        color: iconColor.withOpacity(0.8),
-        child: SizedBox(
-          width: 28,
-          height: _kIconHeight,
-        ),
+      _buildNavBack(context),
+      _buildNavHome(context),
+      _buildContainer(
+        context,
+        child: Icon(null),
       ),
-      Icon(null),
-    ];
-    return Container(
+    ].map((e) => Flexible(child: e)).toList();
+    return Material(
       color: Colors.black,
       child: IconTheme(
         data: const IconThemeData(
