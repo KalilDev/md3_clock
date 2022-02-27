@@ -8,6 +8,7 @@ import 'package:md3_clock/components/sorted_animated_list/controller.dart';
 import 'package:md3_clock/components/sorted_animated_list/widget.dart';
 import 'package:md3_clock/pages/home/navigation_delegate.dart';
 import 'package:md3_clock/widgets/fab_safe_area.dart';
+import 'package:md3_clock/widgets/weekday_picker.dart';
 import 'package:value_notifier/value_notifier.dart';
 
 import '../../components/alarm_item/controller.dart';
@@ -158,21 +159,6 @@ class AlarmPage extends StatefulWidget {
 class _AlarmPageState extends State<AlarmPage> {
   final listKey = GlobalKey<AnimatedListState>();
 
-  late IDisposable _itemInsertHandler;
-  late IDisposable _itemRemoveHandler;
-
-  void initState() {
-    super.initState();
-  }
-
-  void didUpdateWidget(AlarmPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-  }
-
-  void dispose() {
-    super.dispose();
-  }
-
   Widget _cardTheme(
     BuildContext context, {
     required Widget child,
@@ -198,11 +184,8 @@ class _AlarmPageState extends State<AlarmPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return _cardTheme(
-      context,
-      child: SortedAnimatedList<AlarmItemController>(
+  Widget _buildList(BuildContext context) =>
+      SortedAnimatedList<AlarmItemController>(
         key: listKey,
         controller: widget.controller.alarmItemListController,
         padding: const EdgeInsets.only(
@@ -224,6 +207,17 @@ class _AlarmPageState extends State<AlarmPage> {
             controller: value,
           ),
         ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.controller.startOfTheWeek.build(
+      builder: (context, startOfTheWeek, child) => WeekdaysPickerTheme(
+          data: WeekdaysPickerThemeData(startOfTheWeek: startOfTheWeek),
+          child: child!),
+      child: _cardTheme(
+        context,
+        child: _buildList(context),
       ),
     );
   }
