@@ -158,6 +158,20 @@ packages:
       url: "http://localhost:4000"
     source: hosted
     version: "1.8.1"
+  path_parsing:
+    dependency: "direct main"
+    description:
+      name: path_parsing
+      url: "http://localhost:4000"
+    source: hosted
+    version: "1.0.1"
+  petitparser:
+    dependency: transitive
+    description:
+      name: petitparser
+      url: "http://localhost:4000"
+    source: hosted
+    version: "4.4.0"
   quiver:
     dependency: transitive
     description:
@@ -218,7 +232,7 @@ packages:
       name: synchronized
       url: "http://localhost:4000"
     source: hosted
-    version: "3.0.0"
+    version: "3.0.0+2"
   term_glyph:
     dependency: transitive
     description:
@@ -253,7 +267,7 @@ packages:
       path: "../value_notifier"
       relative: true
     source: path
-    version: "0.0.1-prerelease.0"
+    version: "0.0.2-prerelease.15"
   vector_math:
     dependency: transitive
     description:
@@ -261,6 +275,13 @@ packages:
       url: "http://localhost:4000"
     source: hosted
     version: "2.1.1"
+  xml:
+    dependency: "direct main"
+    description:
+      name: xml
+      url: "http://localhost:4000"
+    source: hosted
+    version: "5.3.1"
 sdks:
   dart: ">=2.16.0-154.0.dev <3.0.0"
   flutter: ">=1.20.0"

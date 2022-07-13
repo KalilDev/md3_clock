@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:md3_clock/components/alarm_item/controller.dart';
 import 'package:md3_clock/components/sorted_animated_list/controller.dart';
+import 'package:md3_clock/coordinator/coordinator.dart';
 import 'package:value_notifier/value_notifier.dart';
 
 import '../../model/alarm.dart';
@@ -12,33 +13,38 @@ import '../../model/weekday.dart';
 const kDefaultAlarm = AlarmSound('BusyBugs', true, SoundSource.sounds);
 
 class AlarmPageController extends ControllerBase<AlarmPageController> {
+  final ValueNotifier<Weekday> _startOfTheWeek;
   late final SortedAnimatedListController<AlarmItemController> _itemControllers;
 
-  AlarmPageController()
-      : _itemControllers = SortedAnimatedListController.from(
-          Iterable.generate(
-            48,
-            (i) => AlarmItemController.from(
-              TimeOfDay(
-                hour: i ~/ 2,
-                minute: (i % 2) * 30,
+  AlarmPageController({
+    required ControllerHandle<Coordinator> coordinator,
+  })  : _itemControllers = coordinator.unwrap.createController(
+          () => SortedAnimatedListController.from(
+            Iterable.generate(
+              48,
+              (i) => AlarmItemController.from(
+                TimeOfDay(
+                  hour: i ~/ 2,
+                  minute: (i % 2) * 30,
+                ),
+                '',
+                kDefaultAlarm,
+                Weekdays({}),
+                i.isEven,
+                true,
+                false,
+                DateTime.now(),
               ),
-              '',
-              kDefaultAlarm,
-              Weekdays({}),
-              i.isEven,
-              true,
-              false,
-              DateTime.now(),
             ),
+            _compareItemControllers,
           ),
-          _compareItemControllers,
-        ) {
-    init();
-  }
+        ),
+        _startOfTheWeek = ValueNotifier(Weekday.saturday);
 
   SortedAnimatedListController<AlarmItemController>
       get alarmItemListController => _itemControllers;
+
+  ValueListenable<Weekday> get startOfTheWeek => _startOfTheWeek.view();
 
   void addNewAlarm(TimeOfDay initialTime) async {
     final controller = AlarmItemController.create(initialTime, kDefaultAlarm);
@@ -46,6 +52,8 @@ class AlarmPageController extends ControllerBase<AlarmPageController> {
 
     _itemControllers.insert(controller);
   }
+
+  late final setStartOfTheWeek = _startOfTheWeek.setter;
 
   @override
   void init() {

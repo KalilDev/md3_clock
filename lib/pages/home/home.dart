@@ -91,8 +91,8 @@ class ClockHomePageController extends ControllerBase<ClockHomePageController> {
   ClockHomePageController({
     required ICreateTickers vsync,
     required ControllerHandle<Coordinator> coordinator,
-  })  : _alarmPageController =
-            coordinator.unwrap.createController(() => AlarmPageController()),
+  })  : _alarmPageController = coordinator.unwrap.createController(
+            () => AlarmPageController(coordinator: coordinator)),
         _clockPageController = coordinator.unwrap.createController(
           () => ClockPageController(
             initialCities: [
@@ -219,7 +219,7 @@ class _ClockHomePageState extends State<ClockHomePage>
           : null);
 
   PreferredSizeWidget _appBar() => MD3SmallAppBar(
-        title: controller.currentPage.build(
+        title: controller.currentPage.buildView(
           builder: (context, page, _) => Text(page.title),
         ),
         // Apply the same margin as the scaffold body and remove the leading
